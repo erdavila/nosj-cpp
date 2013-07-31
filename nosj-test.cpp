@@ -13,6 +13,8 @@ static void test_fails() {
 
 #include <iostream>
 #include <cstdlib>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -40,6 +42,10 @@ using namespace std;
 
 
 int main() {
+	struct rlimit rlim;
+	rlim.rlim_cur = rlim.rlim_max = 128 * 1024 * 1024;
+	assert(setrlimit(RLIMIT_AS, &rlim) == 0);
+
 	TEST(passes);
 	TEST(fails);
 
