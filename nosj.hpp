@@ -4,6 +4,7 @@
 
 namespace nosj {
 
+#include "nosj.inl"
 
 } /* namespace nosj */
 

@@ -7,46 +7,52 @@ else
   EXT=
 endif
 
-ifeq ($(NOFORK), Yes)
-  SUFF=-nofork
-  NOFORKFLAG= -DNOFORK
-else
-  SUFF=
-  NOFORKFLAG=
-endif
+NF=-nofork
 
-
+INL=nosj.inl
 H=nosj.hpp
 SRC=$(TARGET).cpp
-OBJ=$(TARGET)$(SUFF).o
-OBJ2=$(TARGET)2$(SUFF).o
-OBJS=$(OBJ) $(OBJ2)
-EXE=$(TARGET)$(SUFF)$(EXT)
 
-CXXFLAGS=-Wall -O0 -g -std=c++11 $(NOFORKFLAG)
+OBJ=$(TARGET).o
+OBJ2=$(TARGET)-again.o
+OBJS=$(OBJ) $(OBJ2)
+EXE=$(TARGET)$(EXT)
+
+OBJNF=$(TARGET)$(NF).o
+OBJSNF=$(OBJNF) $(OBJ2)
+EXENF=$(TARGET)$(NF)$(EXT)
+
+CXXFLAGS=-Wall -O0 -g -std=c++11
 
 
 .PHONY: all
-all: $(EXE)
+all: $(EXE) $(EXENF)
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJS) $(EXE)
+	rm -rf $(OBJS) $(OBJSNF) $(EXE) $(EXENF)
 
 .PHONY: test
 test: $(EXE)
 	./$<
 	
 .PHONY: test-with-valgrind
-test-with-valgrind: $(EXE)
+test-with-valgrind: $(EXENF)
 	valgrind --leak-check=full ./$<
 
 
 $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) $+ -o $@
 
-$(OBJ): $(SRC) $(H)
+$(EXENF): $(OBJSNF)
+	$(CXX) $(CXXFLAGS) $+ -o $@
+
+
+$(OBJ): $(SRC) $(H) $(INL)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ2): $(SRC) $(H)
+$(OBJNF): $(SRC) $(H) $(INL)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -DNOFORK
+
+$(OBJ2): $(SRC) $(H) $(INL)
 	$(CXX) $(CXXFLAGS) -c $< -o $@ -Dmain=pain
