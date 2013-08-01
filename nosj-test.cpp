@@ -21,7 +21,8 @@ static void test_fails() {
 
 using namespace std;
 
-#define TEST(NAME) {                              \
+#ifndef NOFORK
+# define TEST(NAME) {                             \
 	cerr << #NAME "... " << flush;                \
 	pid_t pid = fork();                           \
 	if(pid) {                                     \
@@ -39,7 +40,13 @@ using namespace std;
 		exit(0);                                  \
 	}                                             \
 }
-
+#else
+# define TEST(NAME) {                     \
+	cerr << #NAME "... " << flush;        \
+	test_ ## NAME();                      \
+	cerr << "\e[32mPASSED\e[0m" << endl;  \
+}
+#endif
 
 int main() {
 	struct rlimit rlim;

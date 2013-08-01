@@ -1,21 +1,29 @@
 TARGET=nosj-test
 
 _UNAME=$(shell uname -o)
-ifeq ( $(_UNAME), Cygwin)
+ifeq ($(_UNAME), Cygwin)
   EXT=.exe
 else
   EXT=
 endif
 
+ifeq ($(NOFORK), Yes)
+  SUFF=-nofork
+  NOFORKFLAG= -DNOFORK
+else
+  SUFF=
+  NOFORKFLAG=
+endif
+
 
 H=nosj.hpp
 SRC=$(TARGET).cpp
-OBJ=$(TARGET).o
-OBJ2=$(TARGET)2.o
+OBJ=$(TARGET)$(SUFF).o
+OBJ2=$(TARGET)2$(SUFF).o
 OBJS=$(OBJ) $(OBJ2)
-EXE=$(TARGET)$(EXT)
+EXE=$(TARGET)$(SUFF)$(EXT)
 
-CXXFLAGS=-Wall -O0 -g
+CXXFLAGS=-Wall -O0 -g -std=c++11 $(NOFORKFLAG)
 
 
 .PHONY: all
@@ -31,7 +39,7 @@ test: $(EXE)
 	
 .PHONY: test-with-valgrind
 test-with-valgrind: $(EXE)
-	valgrind ./$<
+	valgrind --leak-check=full ./$<
 
 
 $(EXE): $(OBJS)
