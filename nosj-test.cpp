@@ -1,14 +1,24 @@
-#include "nosj.hpp"
 #include <cassert>
+#include "nosj.hpp"
+#include <exception>
 
 
-static void test_passes() {
-	assert(true);
+#define assert_eq(A, B)  assert(A == B); assert(B == A); assert(!(A != B)); assert(!(B != A))
+#define assert_neq(A, B) assert(A != B); assert(B != A); assert(!(A == B)); assert(!(B == A))
+#define assert_throws(CODE, EX) try { CODE; assert(false); } catch(EX&) { assert(true); }
+#define UNUSED __attribute__((unused))
+
+namespace { // Unnamed namespace
+
+void test_passes() {
+	assert_throws(throw std::exception(), std::exception);
 }
 
-static void test_fails() {
+void test_fails() {
 	assert(false);
 }
+
+} /* Unnamed namespace */
 
 
 #include <iostream>
@@ -21,6 +31,15 @@ static void test_fails() {
 
 using namespace std;
 
+namespace { // Unnamed namespace
+
+size_t passedCount = 0;
+size_t failedCount = 0;
+
+#define GREEN "\e[32m"
+#define RED "\e[31m"
+#define CLEAR "\e[0m"
+
 #ifndef NOFORK
 # define TEST(NAME) {                             \
 	cerr << #NAME "... " << flush;                \
@@ -30,9 +49,11 @@ using namespace std;
 		int status;                               \
 		waitpid(pid, &status, 0);                 \
 		if(WIFEXITED(status)) {                   \
-			cerr << "\e[32mPASSED\e[0m" << endl;  \
+			passedCount++;                        \
+			cerr << GREEN "PASSED" CLEAR << endl; \
 		} else {                                  \
-			cerr << "\e[31mFAILED\e[0m" << endl;  \
+			failedCount++;                        \
+			cerr << RED "FAILED" CLEAR << endl;   \
 		}                                         \
 	} else {                                      \
 		/* child */                               \
@@ -44,9 +65,22 @@ using namespace std;
 # define TEST(NAME) {                     \
 	cerr << #NAME "... " << flush;        \
 	test_ ## NAME();                      \
-	cerr << "\e[32mPASSED\e[0m" << endl;  \
+	cerr << GREEN "PASSED" CLEAR << endl; \
+	passedCount++;                        \
 }
 #endif
+
+string coloredCount(size_t count, const char* color) {
+	string countString = to_string(count);
+	if(count > 0) {
+		return color + countString + CLEAR;
+	} else {
+		return countString;
+	}
+}
+
+} /* Unnamed namespace */
+
 
 int main() {
 	struct rlimit rlim;
@@ -56,6 +90,8 @@ int main() {
 	TEST(passes);
 	TEST(fails);
 
-	cout << "END" << endl;
+	cout << endl;
+	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;
+	cout << "FAILED: " << coloredCount(failedCount, RED)   << endl;
 	return 0;
 }
