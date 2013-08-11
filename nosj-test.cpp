@@ -2,20 +2,50 @@
 #include "nosj.hpp"
 #include <exception>
 
-
 #define assert_eq(A, B)  assert(A == B); assert(B == A); assert(!(A != B)); assert(!(B != A))
 #define assert_neq(A, B) assert(A != B); assert(B != A); assert(!(A == B)); assert(!(B == A))
 #define assert_throws(CODE, EX) try { CODE; assert(false); } catch(EX&) { assert(true); }
 #define UNUSED __attribute__((unused))
 
+
 namespace { // Unnamed namespace
 
-void test_passes() {
-	assert_throws(throw std::exception(), std::exception);
+template <typename T>
+void assert_null(T v) {
+	assert_eq(v, v);
+	assert_eq(v, nosj::null);
+
+	assert(v.type() == nosj::Type::NullType);
+
+	assert(v.isNull());
+	assert(!v.isBoolean());
+	assert(!v.isNumber());
+	assert(!v.isIntegerNumber());
+	assert(!v.isFloatNumber());
+	assert(!v.isString());
+	assert(!v.isArray());
+	assert(!v.isObject());
+
+	v.asNull();
+	assert_throws(v.asBoolean(),       nosj::InvalidConversion);
+	assert_throws(v.asNumber(),        nosj::InvalidConversion);
+	assert_throws(v.asIntegerNumber(), nosj::InvalidConversion);
+	assert_throws(v.asFloatNumber(),   nosj::InvalidConversion);
+	assert_throws(v.asString(),        nosj::InvalidConversion);
+	assert_throws(v.asArray(),         nosj::InvalidConversion);
+	assert_throws(v.asObject(),        nosj::InvalidConversion);
 }
 
-void test_fails() {
-	assert(false);
+void test_null() {
+	{
+		nosj::Value v;
+		assert_null(v);
+	}
+
+	{
+		nosj::Value v = nosj::null;
+		assert_null(v);
+	}
 }
 
 } /* Unnamed namespace */
@@ -30,6 +60,7 @@ void test_fails() {
 #include <unistd.h>
 
 using namespace std;
+
 
 namespace { // Unnamed namespace
 
@@ -87,8 +118,7 @@ int main() {
 	rlim.rlim_cur = rlim.rlim_max = 128 * 1024 * 1024;
 	assert(setrlimit(RLIMIT_AS, &rlim) == 0);
 
-	TEST(passes);
-	TEST(fails);
+	TEST(null);
 
 	cout << endl;
 	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;
