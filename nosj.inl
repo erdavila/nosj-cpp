@@ -18,6 +18,7 @@ namespace _details {
 		virtual Impl* clone() const noexcept = 0;
 		virtual Type type() const noexcept = 0;
 		virtual std::pair<Type, void*> typeAndPointer() const noexcept = 0;
+		virtual bool eq(const Impl*) const noexcept = 0;
 
 		template <typename T>
 		T& as() const {
@@ -27,15 +28,30 @@ namespace _details {
 		}
 	};
 
-	struct NullImpl : Impl {
-		Null value;
-		virtual Impl* clone() const noexcept override { return new NullImpl; }
-		virtual Type type() const noexcept override { return NullType; }
+	template <typename T>
+	struct BasicImpl : Impl {
+		T value;
+		BasicImpl(const T& value) : value(value) {}
+		virtual Impl* clone() const noexcept override { return new BasicImpl(value); }
+		virtual Type type() const noexcept override { return TypeTag<T>::value; }
 		virtual std::pair<Type, void*> typeAndPointer() const noexcept override {
-			Null* pointer = const_cast<Null*>(&value);
-			return std::pair<Type, void*>(NullType, pointer);
+			T* pointer = const_cast<T*>(&value);
+			Type type = TypeTag<T>::value;
+			return std::pair<Type, void*>(type, pointer);
+		}
+		virtual bool eq(const Impl* impl) const noexcept {
+			typedef BasicImpl<T> MyType;
+			const MyType* otherImpl = dynamic_cast<const MyType*>(impl);
+			if(otherImpl) {
+				return value == otherImpl->value;
+			} else {
+				return false;
+			}
 		}
 	};
+
+	typedef BasicImpl<Null>    NullImpl;
+	typedef BasicImpl<Boolean> BooleanImpl;
 
 } // namespace _details
 
@@ -45,11 +61,14 @@ class Number {
 };
 
 
-inline Value::Value(Null) noexcept : impl(new _details::NullImpl) {}
-
 inline Value::Value(const Value& value) noexcept : impl(value.impl->clone()) {}
 
+inline Value::Value(Null) noexcept   : impl(new _details::NullImpl(null)) {}
+inline Value::Value(bool b) noexcept : impl(new _details::BooleanImpl(b)) {}
+
 inline Value::~Value() noexcept { delete impl; }
+
+inline Value& Value::operator=(Value value) { std::swap(impl, value.impl); return *this; }
 
 inline Type Value::type() const noexcept { return impl->type(); }
 
@@ -63,8 +82,8 @@ inline Array&         Value::asArray()         { return impl->as<Array>(); }
 inline Object&        Value::asObject()        { return impl->as<Object>(); }
 
 
-inline bool operator==(const Value&, const Value&) noexcept {
-	return true;
+inline bool operator==(const Value& lhs, const Value& rhs) noexcept {
+	return lhs.impl->eq(rhs.impl);
 }
 
 

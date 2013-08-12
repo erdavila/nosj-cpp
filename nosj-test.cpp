@@ -11,7 +11,7 @@
 namespace { // Unnamed namespace
 
 template <typename T>
-void assert_null(T v) {
+void assert_null(T& v) {
 	assert_eq(v, v);
 	assert_eq(v, nosj::null);
 
@@ -46,6 +46,73 @@ void test_null() {
 		nosj::Value v = nosj::null;
 		assert_null(v);
 	}
+}
+
+template <typename T>
+void assert_boolean(T& v, bool b) {
+	assert_eq(v, v);
+	assert_eq(v, b);
+	assert_neq(v, nosj::null);
+
+	assert(v.type() == nosj::Type::BooleanType);
+
+	assert(!v.isNull());
+	assert(v.isBoolean());
+	assert(!v.isNumber());
+	assert(!v.isIntegerNumber());
+	assert(!v.isFloatNumber());
+	assert(!v.isString());
+	assert(!v.isArray());
+	assert(!v.isObject());
+
+	assert_throws(v.asNull(),      nosj::InvalidConversion);
+	assert(b == v.asBoolean());
+	assert_throws(v.asNumber(),        nosj::InvalidConversion);
+	assert_throws(v.asIntegerNumber(), nosj::InvalidConversion);
+	assert_throws(v.asFloatNumber(),   nosj::InvalidConversion);
+	assert_throws(v.asString(),        nosj::InvalidConversion);
+	assert_throws(v.asArray(),         nosj::InvalidConversion);
+	assert_throws(v.asObject(),        nosj::InvalidConversion);
+}
+
+void test_boolean_constructor() {
+	nosj::Value t = true;
+	assert_boolean(t, true);
+
+	nosj::Value f = false;
+	assert_boolean(f, false);
+
+	assert_neq(t, f);
+}
+
+void test_boolean_assignment() {
+	nosj::Value v;
+
+	v = true;
+
+	assert_boolean(v, true);
+}
+
+void test_boolean_reference() {
+	nosj::Value v = true;
+
+	bool& b = v.asBoolean();
+	b = false;
+
+	assert_eq(v, false);
+}
+
+void test_boolean_copy() {
+	nosj::Value t = true;
+	nosj::Value v = t;
+
+	assert_eq(v, true);
+	assert_eq(t, true);
+
+	v = false;
+
+	assert_eq(v, false);
+	assert_eq(t, true);
 }
 
 } /* Unnamed namespace */
@@ -119,6 +186,10 @@ int main() {
 	assert(setrlimit(RLIMIT_AS, &rlim) == 0);
 
 	TEST(null);
+	TEST(boolean_constructor);
+	TEST(boolean_assignment);
+	TEST(boolean_reference);
+	TEST(boolean_copy);
 
 	cout << endl;
 	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;

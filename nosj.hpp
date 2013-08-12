@@ -55,12 +55,17 @@ public:
 	Value(Null=null) noexcept;
 	Value(const Value&) noexcept;
 	Value(Value&&) noexcept NOT_IMPLEMENTED;
+
+	Value(bool) noexcept;
+
 	~Value() noexcept;
+
+	Value& operator=(Value);
 
 	Type type() const noexcept;
 
-	bool isNull()          const noexcept { return true; }
-	bool isBoolean()       const noexcept { return false; /* TEMPORARY */ }
+	bool isNull()          const noexcept { return type() == NullType; }
+	bool isBoolean()       const noexcept { return type() == BooleanType; }
 	bool isNumber()        const noexcept { return false; /* TEMPORARY */ }
 	bool isIntegerNumber() const noexcept { return false; /* TEMPORARY */ }
 	bool isFloatNumber()   const noexcept { return false; /* TEMPORARY */ }
@@ -88,9 +93,10 @@ public:
 
 private:
 	_details::Impl* impl;
+
+	friend bool operator==(const Value&, const Value&) noexcept;
 };
 
-bool operator==(const Value&, const Value&) noexcept;
 inline bool operator!=(const Value& lhs, const Value& rhs) noexcept { return !(lhs == rhs); }
 
 
