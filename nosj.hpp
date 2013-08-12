@@ -124,7 +124,10 @@ public:
 	Value(String&&)      noexcept;
 
 	Value(const Array&) noexcept;
-	Value(Array&&)      noexcept NOT_IMPLEMENTED;
+	Value(Array&&)      noexcept;
+
+	Value(const Object&) noexcept;
+	Value(Object&&)      noexcept;
 
 	~Value() noexcept;
 
@@ -137,7 +140,7 @@ public:
 	bool isNumber()  const noexcept { return type() == NumberValue; }
 	bool isString()  const noexcept { return type() == StringValue; }
 	bool isArray()   const noexcept { return type() == ArrayValue; }
-	bool isObject()  const noexcept { return false; /* TEMPORARY */ }
+	bool isObject()  const noexcept { return type() == ObjectValue; }
 
 	Null&    asNull();
 	Boolean& asBoolean();

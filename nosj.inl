@@ -104,6 +104,7 @@ namespace _details {
 	typedef BasicImpl<Number>   NumberImpl;
 	typedef BasicImpl<String>   StringImpl;
 	typedef BasicImpl<Array>     ArrayImpl;
+	typedef BasicImpl<Object>   ObjectImpl;
 
 } // namespace _details
 
@@ -125,6 +126,10 @@ inline Value::Value(const String& value) noexcept : impl(new _details::StringImp
 inline Value::Value(String&& value)      noexcept : impl(new _details::StringImpl(std::forward<String>(value))) {}
 
 inline Value::Value(const Array& value) noexcept : impl(new _details::ArrayImpl(value)) {}
+inline Value::Value(Array&& value)      noexcept : impl(new _details::ArrayImpl(std::forward<Array>(value))) {}
+
+inline Value::Value(const Object& value) noexcept : impl(new _details::ObjectImpl(value)) {}
+inline Value::Value(Object&& value)      noexcept : impl(new _details::ObjectImpl(std::forward<Object>(value))) {}
 
 inline Value::~Value() noexcept { delete impl; }
 
