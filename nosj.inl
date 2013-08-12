@@ -99,10 +99,11 @@ namespace _details {
 		}
 	};
 
-	typedef BasicImpl<Null>    NullImpl;
+	typedef BasicImpl<Null>       NullImpl;
 	typedef BasicImpl<Boolean> BooleanImpl;
-	typedef BasicImpl<Number>  NumberImpl;
-	typedef BasicImpl<String>  StringImpl;
+	typedef BasicImpl<Number>   NumberImpl;
+	typedef BasicImpl<String>   StringImpl;
+	typedef BasicImpl<Array>     ArrayImpl;
 
 } // namespace _details
 
@@ -122,6 +123,8 @@ inline Value::Value(Number::Float value) noexcept : impl(new _details::NumberImp
 inline Value::Value(const char* value)   noexcept : impl(new _details::StringImpl(value)) {}
 inline Value::Value(const String& value) noexcept : impl(new _details::StringImpl(value)) {}
 inline Value::Value(String&& value)      noexcept : impl(new _details::StringImpl(std::forward<String>(value))) {}
+
+inline Value::Value(const Array& value) noexcept : impl(new _details::ArrayImpl(value)) {}
 
 inline Value::~Value() noexcept { delete impl; }
 

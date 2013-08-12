@@ -123,6 +123,9 @@ public:
 	Value(const String&) noexcept;
 	Value(String&&)      noexcept;
 
+	Value(const Array&) noexcept;
+	Value(Array&&)      noexcept NOT_IMPLEMENTED;
+
 	~Value() noexcept;
 
 	Value& operator=(Value);
@@ -133,7 +136,7 @@ public:
 	bool isBoolean() const noexcept { return type() == BooleanValue; }
 	bool isNumber()  const noexcept { return type() == NumberValue; }
 	bool isString()  const noexcept { return type() == StringValue; }
-	bool isArray()   const noexcept { return false; /* TEMPORARY */ }
+	bool isArray()   const noexcept { return type() == ArrayValue; }
 	bool isObject()  const noexcept { return false; /* TEMPORARY */ }
 
 	Null&    asNull();
