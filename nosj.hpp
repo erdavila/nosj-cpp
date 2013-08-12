@@ -58,6 +58,15 @@ public:
 
 	Value(bool) noexcept;
 
+	Value(const Number&) noexcept NOT_IMPLEMENTED;
+	Value(Number&&)      noexcept NOT_IMPLEMENTED;
+
+	Value(int)           noexcept;
+	Value(long int)      noexcept;
+	Value(IntegerNumber) noexcept;
+
+	Value(FloatNumber) noexcept NOT_IMPLEMENTED;
+
 	~Value() noexcept;
 
 	Value& operator=(Value);
@@ -66,8 +75,8 @@ public:
 
 	bool isNull()          const noexcept { return type() == NullType; }
 	bool isBoolean()       const noexcept { return type() == BooleanType; }
-	bool isNumber()        const noexcept { return false; /* TEMPORARY */ }
-	bool isIntegerNumber() const noexcept { return false; /* TEMPORARY */ }
+	bool isNumber()        const noexcept { return type() == NumberType; }
+	bool isIntegerNumber() const noexcept;
 	bool isFloatNumber()   const noexcept { return false; /* TEMPORARY */ }
 	bool isString()        const noexcept { return false; /* TEMPORARY */ }
 	bool isArray()         const noexcept { return false; /* TEMPORARY */ }
@@ -82,14 +91,14 @@ public:
 	Array&         asArray();
 	Object&        asObject();
 
-	const Null&          asNull()          const;
-	const Boolean&       asBoolean()       const;
+	const Null&          asNull()          const NOT_IMPLEMENTED;
+	const Boolean&       asBoolean()       const NOT_IMPLEMENTED;
 	const Number&        asNumber()        const;
-	const IntegerNumber& asIntegerNumber() const;
-	const FloatNumber&   asFloatNumber()   const;
-	const String&        asString()        const;
-	const Array&         asArray()         const;
-	const Object&        asObject()        const;
+	const IntegerNumber& asIntegerNumber() const NOT_IMPLEMENTED;
+	const FloatNumber&   asFloatNumber()   const NOT_IMPLEMENTED;
+	const String&        asString()        const NOT_IMPLEMENTED;
+	const Array&         asArray()         const NOT_IMPLEMENTED;
+	const Object&        asObject()        const NOT_IMPLEMENTED;
 
 private:
 	_details::Impl* impl;

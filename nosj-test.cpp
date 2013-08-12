@@ -48,10 +48,16 @@ void test_null() {
 	}
 }
 
+template <typename T, typename U>
+void assert_value(T& v, U value) {
+	assert_eq(v, v);
+	assert_eq(v, value);
+	assert_eq(v, nosj::Value(value));
+}
+
 template <typename T>
 void assert_boolean(T& v, bool b) {
-	assert_eq(v, v);
-	assert_eq(v, b);
+	assert_value(v, b);
 	assert_neq(v, nosj::null);
 
 	assert(v.type() == nosj::Type::BooleanType);
@@ -65,7 +71,7 @@ void assert_boolean(T& v, bool b) {
 	assert(!v.isArray());
 	assert(!v.isObject());
 
-	assert_throws(v.asNull(),      nosj::InvalidConversion);
+	assert_throws(v.asNull(),          nosj::InvalidConversion);
 	assert(b == v.asBoolean());
 	assert_throws(v.asNumber(),        nosj::InvalidConversion);
 	assert_throws(v.asIntegerNumber(), nosj::InvalidConversion);
@@ -113,6 +119,145 @@ void test_boolean_copy() {
 
 	assert_eq(v, false);
 	assert_eq(t, true);
+}
+
+template <typename T>
+void assert_integer(T& v, long long int i) {
+	assert_value(v, i);
+	assert_neq(v, nosj::null);
+	assert_neq(v, true);
+	assert_neq(v, nosj::Value(true));
+
+	assert(v.type() == nosj::Type::NumberType);
+	assert(v.asNumber().type() == nosj::Type::IntegerNumberType);
+
+	assert(!v.isNull());
+	assert(!v.isBoolean());
+	assert(v.isNumber());
+	assert(v.isIntegerNumber());
+	assert(!v.isFloatNumber());
+	assert(!v.isString());
+	assert(!v.isArray());
+	assert(!v.isObject());
+
+	assert_throws(v.asNull(),          nosj::InvalidConversion);
+	assert_throws(v.asBoolean(),       nosj::InvalidConversion);
+	assert(i == v.asNumber());
+	assert(i == v.asIntegerNumber());
+	assert_throws(v.asFloatNumber(),   nosj::InvalidConversion);
+	assert_throws(v.asString(),        nosj::InvalidConversion);
+	assert_throws(v.asArray(),         nosj::InvalidConversion);
+	assert_throws(v.asObject(),        nosj::InvalidConversion);
+}
+
+void test_integer_constructor() {
+	nosj::Value i1 = static_cast<char>(1);
+	assert_integer(i1, 1);
+
+	nosj::Value i2 = static_cast<short>(2);
+	assert_integer(i2, 2);
+
+	nosj::Value i3 = static_cast<int>(3);
+	assert_integer(i3, 3);
+
+	nosj::Value i4 = static_cast<long>(4);
+	assert_integer(i4, 4);
+
+	nosj::Value i5 = static_cast<long long>(5);
+	assert_integer(i5, 5);
+
+	assert_neq(i1, i2);
+	assert_neq(i1, i3);
+	assert_neq(i1, i4);
+	assert_neq(i1, i5);
+
+	assert_neq(i2, i3);
+	assert_neq(i2, i4);
+	assert_neq(i2, i5);
+
+	assert_neq(i3, i4);
+	assert_neq(i3, i5);
+
+	assert_neq(i4, i5);
+}
+
+void test_integer_assignment() {
+	nosj::Value v;
+
+	v = static_cast<char>(1);
+	assert_integer(v, 1);
+
+	v = static_cast<short>(2);
+	assert_integer(v, 2);
+
+	v = static_cast<int>(3);
+	assert_integer(v, 3);
+
+	v = static_cast<long>(4);
+	assert_integer(v, 4);
+
+	v = static_cast<long long>(5);
+	assert_integer(v, 5);
+}
+
+void test_integer_number_reference() {
+	nosj::Value v = 7;
+
+	nosj::Number& n = v.asNumber();
+
+	n = static_cast<char>(1);
+	assert(n == 1);
+	assert_integer(v, 1);
+
+	n = static_cast<short>(2);
+	assert(n == 2);
+	assert_integer(v, 2);
+
+	n = static_cast<int>(3);
+	assert(n == 3);
+	assert_integer(v, 3);
+
+	n = static_cast<long>(4);
+	assert(n == 4);
+	assert_integer(v, 4);
+
+	n = static_cast<long long>(5);
+	assert(n == 5);
+	assert_integer(v, 5);
+}
+
+void test_integer_reference() {
+	nosj::Value v = 7;
+
+	nosj::IntegerNumber& i = v.asIntegerNumber();
+
+	i = static_cast<char>(1);
+	assert_integer(v, 1);
+
+	i = static_cast<short>(2);
+	assert_integer(v, 2);
+
+	i = static_cast<int>(3);
+	assert_integer(v, 3);
+
+	i = static_cast<long>(4);
+	assert_integer(v, 4);
+
+	i = static_cast<long long>(5);
+	assert_integer(v, 5);
+}
+
+void test_integer_copy() {
+	nosj::Value i = 3;
+	nosj::Value i2 = i;
+
+	assert_eq(i, 3);
+	assert_eq(i2, 3);
+
+	i2 = 4;
+
+	assert_integer(i, 3);
+	assert_integer(i2, 4);
 }
 
 } /* Unnamed namespace */
@@ -186,10 +331,17 @@ int main() {
 	assert(setrlimit(RLIMIT_AS, &rlim) == 0);
 
 	TEST(null);
+
 	TEST(boolean_constructor);
 	TEST(boolean_assignment);
 	TEST(boolean_reference);
 	TEST(boolean_copy);
+
+	TEST(integer_constructor);
+	TEST(integer_assignment);
+	TEST(integer_number_reference);
+	TEST(integer_reference);
+	TEST(integer_copy);
 
 	cout << endl;
 	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;
