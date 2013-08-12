@@ -119,6 +119,10 @@ public:
 	Value(double)        noexcept;
 	Value(Number::Float) noexcept;
 
+	Value(const char*)   noexcept;
+	Value(const String&) noexcept;
+	Value(String&&)      noexcept;
+
 	~Value() noexcept;
 
 	Value& operator=(Value);
@@ -128,7 +132,7 @@ public:
 	bool isNull()    const noexcept { return type() == NullValue; }
 	bool isBoolean() const noexcept { return type() == BooleanValue; }
 	bool isNumber()  const noexcept { return type() == NumberValue; }
-	bool isString()  const noexcept { return false; /* TEMPORARY */ }
+	bool isString()  const noexcept { return type() == StringValue; }
 	bool isArray()   const noexcept { return false; /* TEMPORARY */ }
 	bool isObject()  const noexcept { return false; /* TEMPORARY */ }
 

@@ -81,6 +81,7 @@ namespace _details {
 	struct BasicImpl : Impl {
 		T value;
 		BasicImpl(const T& value) : value(value) {}
+		BasicImpl(T&& value)      : value(std::forward<T>(value)) {}
 		virtual Impl* clone() const noexcept override { return new BasicImpl(value); }
 		virtual Value::Type type() const noexcept override { return TypeTag<T>::value; }
 		virtual std::pair<Value::Type, void*> typeAndPointer() const noexcept override {
@@ -101,6 +102,7 @@ namespace _details {
 	typedef BasicImpl<Null>    NullImpl;
 	typedef BasicImpl<Boolean> BooleanImpl;
 	typedef BasicImpl<Number>  NumberImpl;
+	typedef BasicImpl<String>  StringImpl;
 
 } // namespace _details
 
@@ -116,6 +118,10 @@ inline Value::Value(Number::Integer value) noexcept : impl(new _details::NumberI
 
 inline Value::Value(double value)        noexcept : impl(new _details::NumberImpl(value)) {}
 inline Value::Value(Number::Float value) noexcept : impl(new _details::NumberImpl(value)) {}
+
+inline Value::Value(const char* value)   noexcept : impl(new _details::StringImpl(value)) {}
+inline Value::Value(const String& value) noexcept : impl(new _details::StringImpl(value)) {}
+inline Value::Value(String&& value)      noexcept : impl(new _details::StringImpl(std::forward<String>(value))) {}
 
 inline Value::~Value() noexcept { delete impl; }
 
