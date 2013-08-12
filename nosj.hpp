@@ -65,7 +65,8 @@ public:
 	Value(long int)      noexcept;
 	Value(IntegerNumber) noexcept;
 
-	Value(FloatNumber) noexcept NOT_IMPLEMENTED;
+	Value(double)      noexcept;
+	Value(FloatNumber) noexcept;
 
 	~Value() noexcept;
 
@@ -77,7 +78,7 @@ public:
 	bool isBoolean()       const noexcept { return type() == BooleanType; }
 	bool isNumber()        const noexcept { return type() == NumberType; }
 	bool isIntegerNumber() const noexcept;
-	bool isFloatNumber()   const noexcept { return false; /* TEMPORARY */ }
+	bool isFloatNumber()   const noexcept;
 	bool isString()        const noexcept { return false; /* TEMPORARY */ }
 	bool isArray()         const noexcept { return false; /* TEMPORARY */ }
 	bool isObject()        const noexcept { return false; /* TEMPORARY */ }
@@ -103,6 +104,7 @@ public:
 private:
 	_details::Impl* impl;
 
+	Number& asNumberIfTypeIs(Type type);
 	friend bool operator==(const Value&, const Value&) noexcept;
 };
 

@@ -10,7 +10,8 @@ public:
 	Number(long int value)      noexcept : Number(static_cast<IntegerNumber>(value)) {}
 	Number(IntegerNumber value) noexcept : type_(IntegerNumberType), integerValue(value) {}
 
-	Number(FloatNumber   value) noexcept NOT_IMPLEMENTED;
+	Number(double value)      noexcept : Number(static_cast<FloatNumber>(value)) {}
+	Number(FloatNumber value) noexcept : type_(FloatNumberType), floatValue(value) {}
 
 	~Number() noexcept = default;
 
@@ -18,6 +19,15 @@ public:
 	Number& operator=(Number&&)      noexcept = default;
 
 	Type type() const noexcept { return type_; }
+
+	template <typename T>
+	operator T() const noexcept {
+		if(type_ == IntegerNumberType) {
+			return integerValue;
+		} else {
+			return floatValue;
+		}
+	}
 
 private:
 	Type type_;
@@ -35,7 +45,11 @@ private:
 				NOT_IMPLEMENTED
 			}
 		} else {
-			NOT_IMPLEMENTED
+			if(rhs.type_ == IntegerNumberType) {
+				NOT_IMPLEMENTED
+			} else {
+				return lhs.floatValue == rhs.floatValue;
+			}
 		}
 	}
 };
@@ -106,6 +120,9 @@ inline Value::Value(int value)           noexcept : Value(static_cast<IntegerNum
 inline Value::Value(long int value)      noexcept : Value(static_cast<IntegerNumber>(value)) {}
 inline Value::Value(IntegerNumber value) noexcept : impl(new _details::NumberImpl(value)) {}
 
+inline Value::Value(double value)      noexcept : Value(static_cast<FloatNumber>(value)) {}
+inline Value::Value(FloatNumber value) noexcept : impl(new _details::NumberImpl(value)) {}
+
 inline Value::~Value() noexcept { delete impl; }
 
 inline Value& Value::operator=(Value value) { std::swap(impl, value.impl); return *this; }
@@ -116,17 +133,24 @@ inline bool Value::isIntegerNumber() const noexcept {
 	return isNumber() && asNumber().type() == IntegerNumberType;
 }
 
+inline bool Value::isFloatNumber() const noexcept {
+	return isNumber() && asNumber().type() == FloatNumberType;
+}
+
 inline Null&          Value::asNull()          { return impl->as<Null>(); }
 inline Boolean&       Value::asBoolean()       { return impl->as<Boolean>(); }
 inline Number&        Value::asNumber()        { return impl->as<Number>(); }
-inline IntegerNumber& Value::asIntegerNumber() {
+
+inline Number& Value::asNumberIfTypeIs(Type type) {
 	Number& number = asNumber();
-	if(number.type() == IntegerNumberType) {
-		return number.integerValue;
+	if(number.type() == type) {
+		return number;
 	}
 	throw InvalidConversion();
 }
-inline FloatNumber&   Value::asFloatNumber()   { return impl->as<FloatNumber>(); }
+inline IntegerNumber& Value::asIntegerNumber() { return asNumberIfTypeIs(IntegerNumberType).integerValue; }
+inline FloatNumber&   Value::asFloatNumber()   { return asNumberIfTypeIs(FloatNumberType).floatValue; }
+
 inline String&        Value::asString()        { return impl->as<String>(); }
 inline Array&         Value::asArray()         { return impl->as<Array>(); }
 inline Object&        Value::asObject()        { return impl->as<Object>(); }

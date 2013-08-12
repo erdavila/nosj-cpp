@@ -10,8 +10,8 @@
 
 namespace { // Unnamed namespace
 
-template <typename T>
-void assert_null(T& v) {
+template <typename Tested>
+void assert_null(Tested& v) {
 	assert_eq(v, v);
 	assert_eq(v, nosj::null);
 
@@ -48,15 +48,15 @@ void test_null() {
 	}
 }
 
-template <typename T, typename U>
-void assert_value(T& v, U value) {
+template <typename Tested, typename ExpectedValue>
+void assert_value(Tested& v, ExpectedValue expectedValue) {
 	assert_eq(v, v);
-	assert_eq(v, value);
-	assert_eq(v, nosj::Value(value));
+	assert_eq(v, expectedValue);
+	assert_eq(v, nosj::Value(expectedValue));
 }
 
-template <typename T>
-void assert_boolean(T& v, bool b) {
+template <typename Tested>
+void assert_boolean(Tested& v, bool b) {
 	assert_value(v, b);
 	assert_neq(v, nosj::null);
 
@@ -121,33 +121,59 @@ void test_boolean_copy() {
 	assert_eq(t, true);
 }
 
-template <typename T>
-void assert_integer(T& v, long long int i) {
-	assert_value(v, i);
+
+
+template <typename Target, typename Tested, typename ExpectedValue>
+void assert_number_value(Tested& v, ExpectedValue expectedValue) {
+	Target var = v.asNumber();
+	assert(var == static_cast<Target>(expectedValue));
+}
+
+template <typename Tested, typename ExpectedValue>
+void assert_number(Tested& v, ExpectedValue expectedValue) {
+	assert_value(v, expectedValue);
 	assert_neq(v, nosj::null);
 	assert_neq(v, true);
 	assert_neq(v, nosj::Value(true));
 
 	assert(v.type() == nosj::Type::NumberType);
-	assert(v.asNumber().type() == nosj::Type::IntegerNumberType);
 
 	assert(!v.isNull());
 	assert(!v.isBoolean());
 	assert(v.isNumber());
-	assert(v.isIntegerNumber());
-	assert(!v.isFloatNumber());
 	assert(!v.isString());
 	assert(!v.isArray());
 	assert(!v.isObject());
 
-	assert_throws(v.asNull(),          nosj::InvalidConversion);
-	assert_throws(v.asBoolean(),       nosj::InvalidConversion);
-	assert(i == v.asNumber());
+	assert_throws(v.asNull(),    nosj::InvalidConversion);
+	assert_throws(v.asBoolean(), nosj::InvalidConversion);
+	assert(expectedValue == v.asNumber());
+	assert_throws(v.asString(),  nosj::InvalidConversion);
+	assert_throws(v.asArray(),   nosj::InvalidConversion);
+	assert_throws(v.asObject(),  nosj::InvalidConversion);
+
+	assert_number_value<char>(v, expectedValue);
+	assert_number_value<short>(v, expectedValue);
+	assert_number_value<int>(v, expectedValue);
+	assert_number_value<long>(v, expectedValue);
+	assert_number_value<long long>(v, expectedValue);
+
+	assert_number_value<float>(v, expectedValue);
+	assert_number_value<double>(v, expectedValue);
+	assert_number_value<long double>(v, expectedValue);
+}
+
+template <typename Tested>
+void assert_integer(Tested& v, long long int i) {
+	assert(v.asNumber().type() == nosj::Type::IntegerNumberType);
+
+	assert(v.isIntegerNumber());
+	assert(!v.isFloatNumber());
+
 	assert(i == v.asIntegerNumber());
-	assert_throws(v.asFloatNumber(),   nosj::InvalidConversion);
-	assert_throws(v.asString(),        nosj::InvalidConversion);
-	assert_throws(v.asArray(),         nosj::InvalidConversion);
-	assert_throws(v.asObject(),        nosj::InvalidConversion);
+	assert_throws(v.asFloatNumber(), nosj::InvalidConversion);
+
+	assert_number(v, i);
 }
 
 void test_integer_constructor() {
@@ -260,6 +286,94 @@ void test_integer_copy() {
 	assert_integer(i2, 4);
 }
 
+template <typename Tested>
+void assert_float(Tested& v, long double f) {
+	assert(v.asNumber().type() == nosj::Type::FloatNumberType);
+
+	assert(!v.isIntegerNumber());
+	assert(v.isFloatNumber());
+
+	assert_throws(v.asIntegerNumber(), nosj::InvalidConversion);
+	assert(f == v.asFloatNumber());
+
+	assert_number(v, f);
+}
+
+void test_float_constructor() {
+	nosj::Value f1 = static_cast<float>(1.5);
+	assert_float(f1, 1.5);
+
+	nosj::Value f2 = static_cast<double>(2.25);
+	assert_float(f2, 2.25);
+
+	nosj::Value f3 = static_cast<long double>(3.125);
+	assert_float(f3, 3.125);
+
+	assert_neq(f1, f2);
+	assert_neq(f1, f3);
+
+	assert_neq(f2, f3);
+}
+
+void test_float_assignment() {
+	nosj::Value v;
+
+	v = static_cast<float>(1.5);
+	assert_float(v, 1.5);
+
+	v = static_cast<double>(2.25);
+	assert_float(v, 2.25);
+
+	v = static_cast<long double>(3.125);
+	assert_float(v, 3.125);
+}
+
+void test_float_number_reference() {
+	nosj::Value v = 0.0;
+
+	nosj::Number& n = v.asNumber();
+
+	n = static_cast<float>(1.5);
+	assert(n == 1.5);
+	assert_float(v, 1.5);
+
+	n = static_cast<double>(2.25);
+	assert(n == 2.25);
+	assert_float(v, 2.25);
+
+	n = static_cast<long double>(3.125);
+	assert(n == 3.125);
+	assert_float(v, 3.125);
+}
+
+void test_float_reference() {
+	nosj::Value v = 0.0;
+
+	nosj::FloatNumber& f = v.asFloatNumber();
+
+	f = static_cast<float>(1.5);
+	assert_float(v, 1.5);
+
+	f = static_cast<double>(2.25);
+	assert_float(v, 2.25);
+
+	f = static_cast<long double>(3.125);
+	assert_float(v, 3.125);
+}
+
+void test_float_copy() {
+	nosj::Value f = 1.25;
+	nosj::Value f2 = f;
+
+	assert_eq(f, 1.25);
+	assert_eq(f2, 1.25);
+
+	f2 = 3.125;
+
+	assert_float(f, 1.25);
+	assert_float(f2, 3.125);
+}
+
 } /* Unnamed namespace */
 
 
@@ -342,6 +456,12 @@ int main() {
 	TEST(integer_number_reference);
 	TEST(integer_reference);
 	TEST(integer_copy);
+
+	TEST(float_constructor);
+	TEST(float_assignment);
+	TEST(float_number_reference);
+	TEST(float_reference);
+	TEST(float_copy);
 
 	cout << endl;
 	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;
