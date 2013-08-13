@@ -1,58 +1,41 @@
 namespace nosj {
 
 
-class Number {
-public:
-	Number(const Number&) noexcept = default;
-	Number(Number&&)      noexcept = default;
 
-	Number(int value)           noexcept : Number(static_cast<IntegerNumber>(value)) {}
-	Number(long int value)      noexcept : Number(static_cast<IntegerNumber>(value)) {}
-	Number(IntegerNumber value) noexcept : type_(IntegerNumberType), integerValue(value) {}
+inline Number::Number(int value)           noexcept : Number(static_cast<IntegerNumber>(value)) {}
+inline Number::Number(long int value)      noexcept : Number(static_cast<IntegerNumber>(value)) {}
+inline Number::Number(IntegerNumber value) noexcept : type_(IntegerNumberType), integerValue(value) {}
 
-	Number(double value)      noexcept : Number(static_cast<FloatNumber>(value)) {}
-	Number(FloatNumber value) noexcept : type_(FloatNumberType), floatValue(value) {}
+inline Number::Number(double value)      noexcept : Number(static_cast<FloatNumber>(value)) {}
+inline Number::Number(FloatNumber value) noexcept : type_(FloatNumberType), floatValue(value) {}
 
-	~Number() noexcept = default;
+inline Type Number::type() const noexcept { return type_; }
 
-	Number& operator=(const Number&) noexcept = default;
-	Number& operator=(Number&&)      noexcept = default;
+template <typename T>
+Number::operator T() const noexcept {
+	if(type_ == IntegerNumberType) {
+		return integerValue;
+	} else {
+		return floatValue;
+	}
+}
 
-	Type type() const noexcept { return type_; }
-
-	template <typename T>
-	operator T() const noexcept {
-		if(type_ == IntegerNumberType) {
-			return integerValue;
+inline bool operator==(const Number& lhs, const Number& rhs) noexcept {
+	if(lhs.type_ == IntegerNumberType) {
+		if(rhs.type_ == IntegerNumberType) {
+			return lhs.integerValue == rhs.integerValue;
 		} else {
-			return floatValue;
+			NOT_IMPLEMENTED
+		}
+	} else {
+		if(rhs.type_ == IntegerNumberType) {
+			NOT_IMPLEMENTED
+		} else {
+			return lhs.floatValue == rhs.floatValue;
 		}
 	}
+}
 
-private:
-	Type type_;
-	union {
-		IntegerNumber integerValue;
-		FloatNumber   floatValue;
-	};
-
-	friend class Value;
-	friend bool operator==(const Number& lhs, const Number& rhs) noexcept {
-		if(lhs.type_ == IntegerNumberType) {
-			if(rhs.type_ == IntegerNumberType) {
-				return lhs.integerValue == rhs.integerValue;
-			} else {
-				NOT_IMPLEMENTED
-			}
-		} else {
-			if(rhs.type_ == IntegerNumberType) {
-				NOT_IMPLEMENTED
-			} else {
-				return lhs.floatValue == rhs.floatValue;
-			}
-		}
-	}
-};
 inline bool operator!=(const Number& lhs, const Number& rhs) noexcept { return !(lhs == rhs); }
 
 

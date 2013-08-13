@@ -50,6 +50,41 @@ enum Type {
 };
 
 
+class Number {
+public:
+	Number(const Number&) noexcept = default;
+	Number(Number&&)      noexcept = default;
+
+	Number(int value)           noexcept;
+	Number(long int value)      noexcept;
+	Number(IntegerNumber value) noexcept;
+
+	Number(double value)      noexcept;
+	Number(FloatNumber value) noexcept;
+
+	~Number() noexcept = default;
+
+	Number& operator=(const Number&) noexcept = default;
+	Number& operator=(Number&&)      noexcept = default;
+
+	Type type() const noexcept;
+
+	// Convert to any compatible type
+	template <typename T>
+	operator T() const noexcept;
+
+private:
+	Type type_;
+	union {
+		IntegerNumber integerValue;
+		FloatNumber   floatValue;
+	};
+
+	friend class Value;
+	friend bool operator==(const Number&, const Number&) noexcept;
+};
+
+
 class Value {
 public:
 	Value(Null=null) noexcept;
