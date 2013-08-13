@@ -2,12 +2,12 @@ namespace nosj {
 
 
 
-inline Number::Number(int value)           noexcept : Number(static_cast<IntegerNumber>(value)) {}
-inline Number::Number(long int value)      noexcept : Number(static_cast<IntegerNumber>(value)) {}
-inline Number::Number(IntegerNumber value) noexcept : type_(IntegerNumberType), integerValue(value) {}
+inline Number::Number(int value)           noexcept : Number(static_cast<Number::Integer>(value)) {}
+inline Number::Number(long int value)      noexcept : Number(static_cast<Number::Integer>(value)) {}
+inline Number::Number(Number::Integer value) noexcept : type_(IntegerNumberType), integerValue(value) {}
 
-inline Number::Number(double value)      noexcept : Number(static_cast<FloatNumber>(value)) {}
-inline Number::Number(FloatNumber value) noexcept : type_(FloatNumberType), floatValue(value) {}
+inline Number::Number(double value)      noexcept : Number(static_cast<Number::Float>(value)) {}
+inline Number::Number(Number::Float value) noexcept : type_(FloatNumberType), floatValue(value) {}
 
 inline Type Number::type() const noexcept { return type_; }
 
@@ -45,8 +45,8 @@ namespace _details {
 	template <> struct TypeTag<Null>          { static const Type value = NullType; };
 	template <> struct TypeTag<Boolean>       { static const Type value = BooleanType; };
 	template <> struct TypeTag<Number>        { static const Type value = NumberType; };
-	template <> struct TypeTag<IntegerNumber> { static const Type value = IntegerNumberType; };
-	template <> struct TypeTag<FloatNumber>   { static const Type value = FloatNumberType; };
+	template <> struct TypeTag<Number::Integer> { static const Type value = IntegerNumberType; };
+	template <> struct TypeTag<Number::Float>   { static const Type value = FloatNumberType; };
 	template <> struct TypeTag<String>        { static const Type value = StringType; };
 	template <> struct TypeTag<Array>         { static const Type value = ArrayType; };
 	template <> struct TypeTag<Object>        { static const Type value = ObjectType; };
@@ -99,12 +99,12 @@ inline Value::Value(const Value& value) noexcept : impl(value.impl->clone()) {}
 inline Value::Value(Null value) noexcept : impl(new _details::NullImpl(value)) {}
 inline Value::Value(bool value) noexcept : impl(new _details::BooleanImpl(value)) {}
 
-inline Value::Value(int value)           noexcept : Value(static_cast<IntegerNumber>(value)) {}
-inline Value::Value(long int value)      noexcept : Value(static_cast<IntegerNumber>(value)) {}
-inline Value::Value(IntegerNumber value) noexcept : impl(new _details::NumberImpl(value)) {}
+inline Value::Value(int value)           noexcept : Value(static_cast<Number::Integer>(value)) {}
+inline Value::Value(long int value)      noexcept : Value(static_cast<Number::Integer>(value)) {}
+inline Value::Value(Number::Integer value) noexcept : impl(new _details::NumberImpl(value)) {}
 
-inline Value::Value(double value)      noexcept : Value(static_cast<FloatNumber>(value)) {}
-inline Value::Value(FloatNumber value) noexcept : impl(new _details::NumberImpl(value)) {}
+inline Value::Value(double value)      noexcept : Value(static_cast<Number::Float>(value)) {}
+inline Value::Value(Number::Float value) noexcept : impl(new _details::NumberImpl(value)) {}
 
 inline Value::~Value() noexcept { delete impl; }
 
@@ -131,8 +131,8 @@ inline Number& Value::asNumberIfTypeIs(Type type) {
 	}
 	throw InvalidConversion();
 }
-inline IntegerNumber& Value::asIntegerNumber() { return asNumberIfTypeIs(IntegerNumberType).integerValue; }
-inline FloatNumber&   Value::asFloatNumber()   { return asNumberIfTypeIs(FloatNumberType).floatValue; }
+inline Number::Integer& Value::asIntegerNumber() { return asNumberIfTypeIs(IntegerNumberType).integerValue; }
+inline Number::Float&   Value::asFloatNumber()   { return asNumberIfTypeIs(FloatNumberType).floatValue; }
 
 inline String&        Value::asString()        { return impl->as<String>(); }
 inline Array&         Value::asArray()         { return impl->as<Array>(); }

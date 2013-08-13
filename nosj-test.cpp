@@ -255,7 +255,7 @@ void test_integer_number_reference() {
 void test_integer_reference() {
 	nosj::Value v = 7;
 
-	nosj::IntegerNumber& i = v.asIntegerNumber();
+	nosj::Number::Integer& i = v.asIntegerNumber();
 
 	i = static_cast<char>(1);
 	assert_integer(v, 1);
@@ -349,7 +349,7 @@ void test_float_number_reference() {
 void test_float_reference() {
 	nosj::Value v = 0.0;
 
-	nosj::FloatNumber& f = v.asFloatNumber();
+	nosj::Number::Float& f = v.asFloatNumber();
 
 	f = static_cast<float>(1.5);
 	assert_float(v, 1.5);

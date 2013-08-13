@@ -25,8 +25,6 @@ inline bool operator!=(const Null&, const Null&) { return false; }
 class Value;
 
 typedef bool Boolean;
-typedef long long int IntegerNumber;
-typedef long double FloatNumber;
 class Number;
 typedef std::string String; // UTF-8 bytes
 typedef std::deque<Value> Array;
@@ -52,15 +50,18 @@ enum Type {
 
 class Number {
 public:
+	typedef long long int Integer;
+	typedef long double   Float;
+
 	Number(const Number&) noexcept = default;
 	Number(Number&&)      noexcept = default;
 
 	Number(int value)           noexcept;
 	Number(long int value)      noexcept;
-	Number(IntegerNumber value) noexcept;
+	Number(Number::Integer value) noexcept;
 
 	Number(double value)      noexcept;
-	Number(FloatNumber value) noexcept;
+	Number(Number::Float value) noexcept;
 
 	~Number() noexcept = default;
 
@@ -76,8 +77,8 @@ public:
 private:
 	Type type_;
 	union {
-		IntegerNumber integerValue;
-		FloatNumber   floatValue;
+		Number::Integer integerValue;
+		Number::Float   floatValue;
 	};
 
 	friend class Value;
@@ -98,10 +99,10 @@ public:
 
 	Value(int)           noexcept;
 	Value(long int)      noexcept;
-	Value(IntegerNumber) noexcept;
+	Value(Number::Integer) noexcept;
 
 	Value(double)      noexcept;
-	Value(FloatNumber) noexcept;
+	Value(Number::Float) noexcept;
 
 	~Value() noexcept;
 
@@ -121,8 +122,8 @@ public:
 	Null&          asNull();
 	Boolean&       asBoolean();
 	Number&        asNumber();
-	IntegerNumber& asIntegerNumber();
-	FloatNumber&   asFloatNumber();
+	Number::Integer& asIntegerNumber();
+	Number::Float&   asFloatNumber();
 	String&        asString();
 	Array&         asArray();
 	Object&        asObject();
@@ -130,8 +131,8 @@ public:
 	const Null&          asNull()          const NOT_IMPLEMENTED;
 	const Boolean&       asBoolean()       const NOT_IMPLEMENTED;
 	const Number&        asNumber()        const;
-	const IntegerNumber& asIntegerNumber() const NOT_IMPLEMENTED;
-	const FloatNumber&   asFloatNumber()   const NOT_IMPLEMENTED;
+	const Number::Integer& asIntegerNumber() const NOT_IMPLEMENTED;
+	const Number::Float&   asFloatNumber()   const NOT_IMPLEMENTED;
 	const String&        asString()        const NOT_IMPLEMENTED;
 	const Array&         asArray()         const NOT_IMPLEMENTED;
 	const Object&        asObject()        const NOT_IMPLEMENTED;
