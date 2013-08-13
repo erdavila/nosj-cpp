@@ -42,23 +42,23 @@ inline bool operator!=(const Number& lhs, const Number& rhs) noexcept { return !
 namespace _details {
 
 	template <typename T> struct TypeTag;
-	template <> struct TypeTag<Null>          { static const Type value = NullType; };
-	template <> struct TypeTag<Boolean>       { static const Type value = BooleanType; };
-	template <> struct TypeTag<Number>        { static const Type value = NumberType; };
-	template <> struct TypeTag<String>        { static const Type value = StringType; };
-	template <> struct TypeTag<Array>         { static const Type value = ArrayType; };
-	template <> struct TypeTag<Object>        { static const Type value = ObjectType; };
+	template <> struct TypeTag<Null>          { static const Value::Type value = Value::NullValue; };
+	template <> struct TypeTag<Boolean>       { static const Value::Type value = Value::BooleanValue; };
+	template <> struct TypeTag<Number>        { static const Value::Type value = Value::NumberValue; };
+	template <> struct TypeTag<String>        { static const Value::Type value = Value::StringValue; };
+	template <> struct TypeTag<Array>         { static const Value::Type value = Value::ArrayValue; };
+	template <> struct TypeTag<Object>        { static const Value::Type value = Value::ObjectValue; };
 
 	struct Impl {
 		virtual ~Impl() noexcept = default;
 		virtual Impl* clone() const noexcept = 0;
-		virtual Type type() const noexcept = 0;
-		virtual std::pair<Type, void*> typeAndPointer() const noexcept = 0;
+		virtual Value::Type type() const noexcept = 0;
+		virtual std::pair<Value::Type, void*> typeAndPointer() const noexcept = 0;
 		virtual bool eq(const Impl*) const noexcept = 0;
 
 		template <typename T>
 		T& as() const {
-			std::pair<Type, void*> typeAndPointer = this->typeAndPointer();
+			std::pair<Value::Type, void*> typeAndPointer = this->typeAndPointer();
 			if(typeAndPointer.first != TypeTag<T>::value) throw InvalidConversion();
 			return *static_cast<T*>(typeAndPointer.second);
 		}
@@ -69,11 +69,11 @@ namespace _details {
 		T value;
 		BasicImpl(const T& value) : value(value) {}
 		virtual Impl* clone() const noexcept override { return new BasicImpl(value); }
-		virtual Type type() const noexcept override { return TypeTag<T>::value; }
-		virtual std::pair<Type, void*> typeAndPointer() const noexcept override {
+		virtual Value::Type type() const noexcept override { return TypeTag<T>::value; }
+		virtual std::pair<Value::Type, void*> typeAndPointer() const noexcept override {
 			T* pointer = const_cast<T*>(&value);
-			Type type = TypeTag<T>::value;
-			return std::pair<Type, void*>(type, pointer);
+			Value::Type type = TypeTag<T>::value;
+			return std::pair<Value::Type, void*>(type, pointer);
 		}
 		virtual bool eq(const Impl* impl) const noexcept override {
 			typedef BasicImpl<T> MyType;
@@ -108,7 +108,7 @@ inline Value::~Value() noexcept { delete impl; }
 
 inline Value& Value::operator=(Value value) { std::swap(impl, value.impl); return *this; }
 
-inline Type Value::type() const noexcept { return impl->type(); }
+inline Value::Type Value::type() const noexcept { return impl->type(); }
 
 inline bool Value::isIntegerNumber() const noexcept {
 	return isNumber() && asNumber().type() == Number::Type::IntegerNumber;

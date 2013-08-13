@@ -41,12 +41,6 @@ namespace _details {
 } // namespace _details
 
 
-enum Type {
-	NullType, BooleanType, NumberType,
-	StringType, ArrayType, ObjectType
-};
-
-
 class Number {
 public:
 	typedef long long int Integer;
@@ -91,6 +85,11 @@ private:
 
 class Value {
 public:
+	enum Type {
+		NullValue, BooleanValue, NumberValue,
+		StringValue, ArrayValue, ObjectValue
+	};
+
 	Value(Null=null) noexcept;
 	Value(const Value&) noexcept;
 	Value(Value&&) noexcept NOT_IMPLEMENTED;
@@ -113,9 +112,9 @@ public:
 
 	Type type() const noexcept;
 
-	bool isNull()          const noexcept { return type() == NullType; }
-	bool isBoolean()       const noexcept { return type() == BooleanType; }
-	bool isNumber()        const noexcept { return type() == NumberType; }
+	bool isNull()          const noexcept { return type() == NullValue; }
+	bool isBoolean()       const noexcept { return type() == BooleanValue; }
+	bool isNumber()        const noexcept { return type() == NumberValue; }
 	bool isIntegerNumber() const noexcept;
 	bool isFloatNumber()   const noexcept;
 	bool isString()        const noexcept { return false; /* TEMPORARY */ }

@@ -15,7 +15,7 @@ void assert_null(Tested& v) {
 	assert_eq(v, v);
 	assert_eq(v, nosj::null);
 
-	assert(v.type() == nosj::Type::NullType);
+	assert(v.type() == nosj::Value::Type::NullValue);
 
 	assert(v.isNull());
 	assert(!v.isBoolean());
@@ -60,7 +60,7 @@ void assert_boolean(Tested& v, bool b) {
 	assert_value(v, b);
 	assert_neq(v, nosj::null);
 
-	assert(v.type() == nosj::Type::BooleanType);
+	assert(v.type() == nosj::Value::Type::BooleanValue);
 
 	assert(!v.isNull());
 	assert(v.isBoolean());
@@ -136,7 +136,7 @@ void assert_number(Tested& v, ExpectedValue expectedValue) {
 	assert_neq(v, true);
 	assert_neq(v, nosj::Value(true));
 
-	assert(v.type() == nosj::Type::NumberType);
+	assert(v.type() == nosj::Value::Type::NumberValue);
 
 	assert(!v.isNull());
 	assert(!v.isBoolean());
