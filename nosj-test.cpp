@@ -165,7 +165,7 @@ void assert_number(Tested& v, ExpectedValue expectedValue) {
 
 template <typename Tested>
 void assert_integer(Tested& v, long long int i) {
-	assert(v.asNumber().type() == nosj::Type::IntegerNumberType);
+	assert(v.asNumber().type() == nosj::Number::Type::IntegerNumber);
 
 	assert(v.isIntegerNumber());
 	assert(!v.isFloatNumber());
@@ -288,7 +288,7 @@ void test_integer_copy() {
 
 template <typename Tested>
 void assert_float(Tested& v, long double f) {
-	assert(v.asNumber().type() == nosj::Type::FloatNumberType);
+	assert(v.asNumber().type() == nosj::Number::Type::FloatNumber);
 
 	assert(!v.isIntegerNumber());
 	assert(v.isFloatNumber());

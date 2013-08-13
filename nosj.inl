@@ -4,16 +4,16 @@ namespace nosj {
 
 inline Number::Number(int value)           noexcept : Number(static_cast<Number::Integer>(value)) {}
 inline Number::Number(long int value)      noexcept : Number(static_cast<Number::Integer>(value)) {}
-inline Number::Number(Number::Integer value) noexcept : type_(IntegerNumberType), integerValue(value) {}
+inline Number::Number(Number::Integer value) noexcept : type_(IntegerNumber), integerValue(value) {}
 
 inline Number::Number(double value)      noexcept : Number(static_cast<Number::Float>(value)) {}
-inline Number::Number(Number::Float value) noexcept : type_(FloatNumberType), floatValue(value) {}
+inline Number::Number(Number::Float value) noexcept : type_(FloatNumber), floatValue(value) {}
 
-inline Type Number::type() const noexcept { return type_; }
+inline Number::Type Number::type() const noexcept { return type_; }
 
 template <typename T>
 Number::operator T() const noexcept {
-	if(type_ == IntegerNumberType) {
+	if(type_ == IntegerNumber) {
 		return integerValue;
 	} else {
 		return floatValue;
@@ -21,14 +21,14 @@ Number::operator T() const noexcept {
 }
 
 inline bool operator==(const Number& lhs, const Number& rhs) noexcept {
-	if(lhs.type_ == IntegerNumberType) {
-		if(rhs.type_ == IntegerNumberType) {
+	if(lhs.type_ == Number::Type::IntegerNumber) {
+		if(rhs.type_ == Number::Type::IntegerNumber) {
 			return lhs.integerValue == rhs.integerValue;
 		} else {
 			NOT_IMPLEMENTED
 		}
 	} else {
-		if(rhs.type_ == IntegerNumberType) {
+		if(rhs.type_ == Number::Type::IntegerNumber) {
 			NOT_IMPLEMENTED
 		} else {
 			return lhs.floatValue == rhs.floatValue;
@@ -45,8 +45,6 @@ namespace _details {
 	template <> struct TypeTag<Null>          { static const Type value = NullType; };
 	template <> struct TypeTag<Boolean>       { static const Type value = BooleanType; };
 	template <> struct TypeTag<Number>        { static const Type value = NumberType; };
-	template <> struct TypeTag<Number::Integer> { static const Type value = IntegerNumberType; };
-	template <> struct TypeTag<Number::Float>   { static const Type value = FloatNumberType; };
 	template <> struct TypeTag<String>        { static const Type value = StringType; };
 	template <> struct TypeTag<Array>         { static const Type value = ArrayType; };
 	template <> struct TypeTag<Object>        { static const Type value = ObjectType; };
@@ -113,26 +111,26 @@ inline Value& Value::operator=(Value value) { std::swap(impl, value.impl); retur
 inline Type Value::type() const noexcept { return impl->type(); }
 
 inline bool Value::isIntegerNumber() const noexcept {
-	return isNumber() && asNumber().type() == IntegerNumberType;
+	return isNumber() && asNumber().type() == Number::Type::IntegerNumber;
 }
 
 inline bool Value::isFloatNumber() const noexcept {
-	return isNumber() && asNumber().type() == FloatNumberType;
+	return isNumber() && asNumber().type() == Number::Type::FloatNumber;
 }
 
 inline Null&          Value::asNull()          { return impl->as<Null>(); }
 inline Boolean&       Value::asBoolean()       { return impl->as<Boolean>(); }
 inline Number&        Value::asNumber()        { return impl->as<Number>(); }
 
-inline Number& Value::asNumberIfTypeIs(Type type) {
+inline Number& Value::asNumberIfTypeIs(Number::Type type) {
 	Number& number = asNumber();
 	if(number.type() == type) {
 		return number;
 	}
 	throw InvalidConversion();
 }
-inline Number::Integer& Value::asIntegerNumber() { return asNumberIfTypeIs(IntegerNumberType).integerValue; }
-inline Number::Float&   Value::asFloatNumber()   { return asNumberIfTypeIs(FloatNumberType).floatValue; }
+inline Number::Integer& Value::asIntegerNumber() { return asNumberIfTypeIs(Number::Type::IntegerNumber).integerValue; }
+inline Number::Float&   Value::asFloatNumber()   { return asNumberIfTypeIs(Number::Type::FloatNumber).floatValue; }
 
 inline String&        Value::asString()        { return impl->as<String>(); }
 inline Array&         Value::asArray()         { return impl->as<Array>(); }

@@ -43,7 +43,6 @@ namespace _details {
 
 enum Type {
 	NullType, BooleanType, NumberType,
-	IntegerNumberType, FloatNumberType,
 	StringType, ArrayType, ObjectType
 };
 
@@ -52,6 +51,10 @@ class Number {
 public:
 	typedef long long int Integer;
 	typedef long double   Float;
+
+	enum Type {
+		IntegerNumber, FloatNumber
+	};
 
 	Number(const Number&) noexcept = default;
 	Number(Number&&)      noexcept = default;
@@ -140,7 +143,7 @@ public:
 private:
 	_details::Impl* impl;
 
-	Number& asNumberIfTypeIs(Type type);
+	Number& asNumberIfTypeIs(Number::Type type);
 	friend bool operator==(const Value&, const Value&) noexcept;
 };
 
