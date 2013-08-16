@@ -167,6 +167,6 @@ inline bool operator!=(const Value& lhs, const Value& rhs) noexcept { return !(l
 
 } /* namespace nosj */
 
-#include "nosj.inl"
+#include "values.inl"
 
 #endif /* NOSJ_HPP_ */

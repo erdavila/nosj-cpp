@@ -1,7 +1,8 @@
 nosj-test
-nosj-test2.o
-nosj-test-again.o
 nosj-test.exe
 nosj-test-nofork
-nosj-test-nofork.o
-nosj-test.o
+nosj-test-nofork.exe
+linkage-for-redefinition-detection
+linkage-for-redefinition-detection.exe
+*.o
+*.d
