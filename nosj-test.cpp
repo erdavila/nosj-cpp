@@ -67,6 +67,7 @@ namespace tests {
 	void value_string();
 	void value_array();
 	void value_object();
+	void stringify();
 }
 
 
@@ -80,6 +81,7 @@ int main() {
 	tests::value_string();
 	tests::value_array();
 	tests::value_object();
+	tests::stringify();
 
 	cout << endl;
 	cout << "PASSED: " << coloredCount(passedCount, GREEN) << endl;
