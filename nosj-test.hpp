@@ -23,5 +23,21 @@ void assert_value(Tested& v, ExpectedValue expectedValue) {
 	assert_eq(v, nosj::Value(expectedValue));
 }
 
+inline std::string join_lines(std::initializer_list<std::string> lines) {
+	std::string joinedLines = "";
+
+	bool first = true;
+	for(auto& line : lines) {
+		if(!first) {
+			joinedLines += "\n";
+		}
+		joinedLines += line;
+
+		first = false;
+	}
+
+	return joinedLines;
+}
+
 
 #endif /* NOSJ_TEST_HPP_ */

@@ -104,22 +104,6 @@ void test_stringify_string() {
 	assert_stringify("Hello\nGood bye!", R"("Hello\nGood bye!")");
 }
 
-std::string join_lines(std::initializer_list<std::string> lines) {
-	std::string joinedLines = "";
-
-	bool first = true;
-	for(auto& line : lines) {
-		if(!first) {
-			joinedLines += "\n";
-		}
-		joinedLines += line;
-
-		first = false;
-	}
-
-	return joinedLines;
-}
-
 void test_stringify_array() {
 	assert_stringify(nosj::emptyArray, "[]");
 

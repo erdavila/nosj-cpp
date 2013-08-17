@@ -323,6 +323,63 @@ void test_parse_string() {
 	assert_parse_incomplete(R"("\u000)");
 }
 
+void test_parse_array() {
+	assert_parse("[]",    nosj::emptyArray);
+	assert_parse(" [ ] ", nosj::emptyArray, 4);
+
+	assert_parse("[null]",     nosj::Array{nosj::null});
+	assert_parse(" [ null ] ", nosj::Array{nosj::null}, 9);
+
+	assert_parse(R"([false,1.25,"nosj"])",         nosj::Array{false, 1.25, "nosj"});
+	assert_parse(R"( [ false , 1.25 , "nosj" ] )", nosj::Array{false, 1.25, "nosj"}, 26);
+
+	assert_parse(
+			R"(["nosj",[null,false,34],7.0,[1.25]])",
+			nosj::Array {
+					"nosj",
+					nosj::Array {
+							nosj::null,
+							false,
+							34
+					},
+					7.0,
+					nosj::Array { 1.25 }
+			}
+	);
+
+	assert_parse(
+			join_lines({
+				R"([)",
+				R"(   "nosj",)",
+				R"(   [)",
+				R"(      null,)",
+				R"(      false,)",
+				R"(      34)",
+				R"(   ],)",
+				R"(   7.0,)",
+				R"(   [1.25])",
+				R"(])"
+			}),
+			nosj::Array {
+					"nosj",
+					nosj::Array {
+							nosj::null,
+							false,
+							34
+					},
+					7.0,
+					nosj::Array { 1.25 }
+			}
+	);
+
+	assert_parse_incomplete("[");
+	assert_parse_incomplete("[null,");
+	assert_parse_unexpected("[,", ',', 1);
+	assert_parse_unexpected("[null,]", ']', 6);
+	assert_parse_unexpected("[null,,]", ',', 6);
+	assert_parse_unexpected("[null null]", 'n', 6);
+}
+
 void test_parse_invalid() {
 	assert_parse_incomplete("");
 	assert_parse_incomplete(" ");
@@ -336,6 +393,7 @@ namespace tests {
 		TEST(parse_boolean);
 		TEST(parse_number);
 		TEST(parse_string);
+		TEST(parse_array);
 		TEST(parse_invalid);
 	}
 }

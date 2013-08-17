@@ -105,7 +105,7 @@ public:
 	};
 
 	Value(const Value&) noexcept;
-	Value(Value&&)      noexcept NOT_IMPLEMENTED;
+	Value(Value&&)      noexcept;
 
 	Value()     noexcept : Value(Null()) {}
 	Value(Null) noexcept;

@@ -73,6 +73,7 @@ struct Reader {
 			case 'f': return readBooleanFalse();
 			case 't': return readBooleanTrue();
 			case '"': return readString();
+			case '[': return readArray();
 			default:
 				if(isDigit(nextCh)  ||  nextCh == '-') {
 					return readNumber();
@@ -296,6 +297,35 @@ struct Reader {
 
 			return bytes;
 		}
+	}
+
+	Array readArray() {
+		auto ch = extractNextChar();
+		if(ch != '[') {
+			throwUnexpectedPreviousChar(ch);
+		}
+
+		skipWhitespaces();
+		ch = nextChar();
+		if(ch == ']') {
+			extractNextChar();
+			return emptyArray;
+		}
+
+		Array array;
+		while(true) {
+			Value value = readValue();
+			array.push_back(std::move(value));
+
+			skipWhitespaces();
+			ch = extractNextChar();
+			if(ch == ']') {
+				break;
+			} else if(ch != ',') {
+				throwUnexpectedPreviousChar(ch);
+			}
+		}
+		return array;
 	}
 
 	void skipWhitespaces() {

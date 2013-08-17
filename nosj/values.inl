@@ -117,6 +117,7 @@ namespace _details {
 
 
 inline Value::Value(const Value& value) noexcept : impl(value.impl->clone()) {}
+inline Value::Value(Value&& value)      noexcept : Value() { std::swap(impl, value.impl); }
 
 inline Value::Value(Null value) noexcept : impl(new _details::NullImpl(value)) {}
 
