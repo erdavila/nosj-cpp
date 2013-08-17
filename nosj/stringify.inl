@@ -45,6 +45,27 @@ inline void writeTo(std::ostream& os, const Value& value, bool pretty) {
 	case Value::Type::BooleanValue:
 		os << (value.asBoolean() ? "true" : "false");
 		break;
+	case Value::Type::NumberValue: {
+		const Number& number = value.asNumber();
+		switch(number.type()) {
+		case Number::Type::IntegerNumber:
+			os << number.integerRef();
+			break;
+		case Number::Type::FloatNumber:
+			std::ostringstream oss;
+			oss.precision(110);
+			oss.unsetf(oss.floatfield);
+			oss << number.floatRef();
+
+			const std::string& formatted = oss.str();
+			os << formatted;
+			if(formatted.find(L'.') == std::string::npos) {
+				os << ".0";
+			}
+			break;
+		}
+		break;
+	}
 	default:
 		NOT_IMPLEMENTED
 	}

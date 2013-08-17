@@ -13,16 +13,16 @@ inline Number::Number(Number::Float value) noexcept : type_(FloatNumber), floatV
 
 inline Number::Type Number::type() const noexcept { return type_; }
 
-inline Number::Integer& Number::integerRef() {
-	if(type_ == IntegerNumber) {
-		return integerValue;
-	}
-	throw InvalidType();
-}
+inline Number::Integer& Number::integerRef() { return checkAndGetRef(type_, IntegerNumber, integerValue); }
+inline Number::Float&   Number::floatRef()   { return checkAndGetRef(type_, FloatNumber, floatValue); }
 
-inline Number::Float& Number::floatRef() {
-	if(type_ == FloatNumber) {
-		return floatValue;
+inline const Number::Integer& Number::integerRef() const { return checkAndGetRef(type_, IntegerNumber, integerValue); }
+inline const Number::Float&   Number::floatRef()   const { return checkAndGetRef(type_, FloatNumber, floatValue); }
+
+template <typename T>
+T& Number::checkAndGetRef(Type type, Type expectedType, T& ref) {
+	if(type == expectedType) {
+		return ref;
 	}
 	throw InvalidType();
 }

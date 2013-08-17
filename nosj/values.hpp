@@ -74,8 +74,8 @@ public:
 	Integer& integerRef();
 	Float&   floatRef();
 
-	const Integer& integerRef() const NOT_IMPLEMENTED;
-	const Float&   floatRef()   const NOT_IMPLEMENTED;
+	const Integer& integerRef() const;
+	const Float&   floatRef()   const;
 
 	// Convert to any compatible type
 	template <typename T>
@@ -87,6 +87,9 @@ private:
 		Number::Integer integerValue;
 		Number::Float   floatValue;
 	};
+
+	template <typename T>
+	static T& checkAndGetRef(Type, Type, T&);
 
 	friend class Value;
 	friend bool operator==(const Number&, const Number&) noexcept;

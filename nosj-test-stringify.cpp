@@ -51,11 +51,24 @@ void test_stringify_boolean() {
 	assert_stringify(true, "true");
 }
 
+void test_stringify_number() {
+	assert_stringify(0, "0");
+	assert_stringify(468312354LL, "468312354");
+	assert_stringify(-468312354LL, "-468312354");
+	assert_stringify(0.0, "0.0");
+	assert_stringify(156.015625, "156.015625");
+	assert_stringify(0.0001220703125, "0.0001220703125");
+	assert_stringify(-156.015625, "-156.015625");
+	assert_stringify(-0.0001220703125, "-0.0001220703125");
+	assert_stringify(0.0000152587890625, "1.52587890625e-05");
+}
+
 }
 
 namespace tests {
 	void stringify() {
 		TEST(stringify_null);
 		TEST(stringify_boolean);
+		TEST(stringify_number);
 	}
 }
