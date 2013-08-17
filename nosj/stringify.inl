@@ -85,7 +85,22 @@ struct WriterVisitor : nosj::ConstVisitor {
 		os << ']';
 	}
 
-	void visit(const Object&) override NOT_IMPLEMENTED;
+	void visit(const Object& object) override {
+		os << '{';
+		bool first = true;
+		for(auto& pair : object) {
+			const std::string& key = pair.first;
+			const Value& value = pair.second;
+			if(!first) {
+				os << ',';
+			}
+			visit(key);
+			os << ':';
+			value.accept(*this);
+			first = false;
+		}
+		os << '}';
+	}
 };
 
 struct PrettyWriterVisitor : WriterVisitor {
@@ -124,6 +139,36 @@ struct PrettyWriterVisitor : WriterVisitor {
 			indent();
 			os << ']';
 		}
+	}
+
+	void visit(const Object& object) override {
+		if(object.empty()) {
+			WriterVisitor::visit(object);
+		} else {
+			os << '{';
+
+			indentLevel++;
+			bool first = true;
+			for(auto& pair : object) {
+				const std::string& key = pair.first;
+				const Value& value = pair.second;
+				if(!first) {
+					os << ',';
+				}
+
+				os << std::endl;
+				indent();
+				WriterVisitor::visit(key);
+				os << " : ";
+				value.accept(*this);
+				first = false;
+			}
+			os << std::endl;
+			indentLevel--;
+			indent();
+			os << '}';
+		}
+
 	}
 
 };

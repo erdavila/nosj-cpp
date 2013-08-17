@@ -1,46 +1,55 @@
 #include "nosj-test.hpp"
 #include "nosj/stringify.hpp"
+#include <initializer_list>
+#include <set>
 #include <sstream>
 
 namespace /*unnamed*/ {
 
+typedef std::set<std::string> ExpectedSet;
 
-void assert_stringify(const nosj::Value& v, const std::string& expected, const std::string& expectedPretty_ = "") {
-	const std::string& expectedPretty = expectedPretty_.empty() ? expected : expectedPretty_;
+void assert_stringify(const nosj::Value& v, const ExpectedSet& expected, const ExpectedSet& expectedPretty_ = {}) {
+	const ExpectedSet& expectedPretty = expectedPretty_.empty() ? expected : expectedPretty_;
 	std::ostringstream os;
 
 	os << v;
-	assert(os.str() == expected);
+	assert(expected.count(os.str()) == 1);
 	os.str("");
 
 	os << pretty(v);
-	assert(os.str() == expectedPretty);
+	assert(expectedPretty.count(os.str()) == 1);
 	os.str("");
 
 	os << nopretty(v);
-	assert(os.str() == expected);
+	assert(expected.count(os.str()) == 1);
 	os.str("");
 
 	nosj::writeTo(os, v);
-	assert(os.str() == expected);
+	assert(expected.count(os.str()) == 1);
 	os.str("");
 
 	nosj::writeTo(os, v, false);
-	assert(os.str() == expected);
+	assert(expected.count(os.str()) == 1);
 	os.str("");
 
 	nosj::writeTo(os, v, true);
-	assert(os.str() == expectedPretty);
+	assert(expectedPretty.count(os.str()) == 1);
 
 	std::string str = nosj::stringify(v);
-	assert(str == expected);
+	assert(expected.count(str) == 1);
 
 	str = nosj::stringify(v, false);
-	assert(str == expected);
+	assert(expected.count(str) == 1);
 
 	str = nosj::stringify(v, true);
-	assert(str == expectedPretty);
+	assert(expectedPretty.count(str) == 1);
 }
+
+void assert_stringify(const nosj::Value& v, const std::string& expected, const std::string& expectedPretty_ = "") {
+	const std::string& expectedPretty = expectedPretty_.empty() ? expected : expectedPretty_;
+	assert_stringify(v, ExpectedSet{expected}, ExpectedSet{expectedPretty});
+}
+
 
 void test_stringify_null() {
 	assert_stringify(nosj::null, "null");
@@ -95,6 +104,22 @@ void test_stringify_string() {
 	assert_stringify("Hello\nGood bye!", R"("Hello\nGood bye!")");
 }
 
+std::string join_lines(std::initializer_list<std::string> lines) {
+	std::string joinedLines = "";
+
+	bool first = true;
+	for(auto& line : lines) {
+		if(!first) {
+			joinedLines += "\n";
+		}
+		joinedLines += line;
+
+		first = false;
+	}
+
+	return joinedLines;
+}
+
 void test_stringify_array() {
 	assert_stringify(nosj::emptyArray, "[]");
 
@@ -107,15 +132,15 @@ void test_stringify_array() {
 					7,
 					1.25
 			},
-
 			"[true,null,7,1.25]",
-
-			"[\n"
-			"   true,\n"
-			"   null,\n"
-			"   7,\n"
-			"   1.25\n"
-			"]"
+			join_lines({
+				R"([)",
+				R"(   true,)",
+				R"(   null,)",
+				R"(   7,)",
+				R"(   1.25)",
+				R"(])"
+			})
 	);
 
 	assert_stringify(
@@ -129,19 +154,140 @@ void test_stringify_array() {
 					7.0,
 					nosj::Array { 1.25 }
 			},
-
 			R"(["nosj",[null,false,34],7.0,[1.25]])",
+			join_lines({
+				R"([)",
+				R"(   "nosj",)",
+				R"(   [)",
+				R"(      null,)",
+				R"(      false,)",
+				R"(      34)",
+				R"(   ],)",
+				R"(   7.0,)",
+				R"(   [1.25])",
+				R"(])"
+			})
+	);
 
-			"[\n"
-			"   \"nosj\",\n"
-			"   [\n"
-			"      null,\n"
-			"      false,\n"
-			"      34\n"
-			"   ],\n"
-			"   7.0,\n"
-			"   [1.25]\n"
-			"]"
+	assert_stringify(
+			nosj::Array {
+				nosj::Object {
+					{"name", "John"},
+					{"age", 34}
+				},
+				nosj::emptyObject,
+				nosj::Object {
+					{"nosj", true}
+				}
+			},
+			ExpectedSet {
+				R"([{"name":"John","age":34},{},{"nosj":true}])",
+				R"([{"age":34,"name":"John"},{},{"nosj":true}])",
+			},
+			ExpectedSet {
+				join_lines({
+					R"([)",
+					R"(   {)",
+					R"(      "name" : "John",)",
+					R"(      "age" : 34)",
+					R"(   },)",
+					R"(   {},)",
+					R"(   {)",
+					R"(      "nosj" : true)",
+					R"(   })",
+					R"(])",
+				}),
+				join_lines({
+					R"([)",
+					R"(   {)",
+					R"(      "age" : 34,)",
+					R"(      "name" : "John")",
+					R"(   },)",
+					R"(   {},)",
+					R"(   {)",
+					R"(      "nosj" : true)",
+					R"(   })",
+					R"(])",
+				})
+			}
+	);
+}
+
+void test_stringify_object() {
+	assert_stringify(nosj::emptyObject, "{}");
+
+	assert_stringify(
+			nosj::Object {
+					{ "name", "John" }
+			},
+			R"({"name":"John"})",
+			join_lines({
+				R"({)",
+				R"(   "name" : "John")",
+				R"(})"
+			})
+	);
+
+	assert_stringify(
+			nosj::Object {
+					{ "name", "John" },
+					{ "age", 34 }
+			},
+			ExpectedSet {
+					R"({"name":"John","age":34})",
+					R"({"age":34,"name":"John"})",
+			},
+			ExpectedSet {
+				join_lines({
+					R"({)",
+					R"(   "name" : "John",)",
+					R"(   "age" : 34)",
+					R"(})"
+				}),
+				join_lines({
+					R"({)",
+					R"(   "age" : 34,)",
+					R"(   "name" : "John")",
+					R"(})"
+				})
+			}
+	);
+
+	assert_stringify(
+			nosj::Object {
+					{ "person", nosj::Object {
+							{ "name", "John" },
+							{ "children", nosj::Array{12, 7} }
+					}}
+			},
+			ExpectedSet {
+					R"({"person":{"name":"John","children":[12,7]}})",
+					R"({"person":{"children":[12,7],"name":"John"}})",
+			},
+			ExpectedSet {
+				join_lines({
+					R"({)"
+					R"(   "person" : {)",
+					R"(      "name" : "John",)",
+					R"(      "children" : [)",
+					R"(         12,)",
+					R"(         7)",
+					R"(      ])",
+					R"(   })",
+					R"(})"
+				}),
+				join_lines({
+					R"({)",
+					R"(   "person" : {)",
+					R"(      "children" : [)",
+					R"(         12,)",
+					R"(         7)",
+					R"(      ],)",
+					R"(      "name" : "John")",
+					R"(   })",
+					R"(})"
+				})
+			}
 	);
 }
 
@@ -154,5 +300,6 @@ namespace tests {
 		TEST(stringify_number);
 		TEST(stringify_string);
 		TEST(stringify_array);
+		TEST(stringify_object);
 	}
 }
