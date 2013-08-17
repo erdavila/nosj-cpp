@@ -11,15 +11,14 @@ struct StringifiableValue {
 };
 
 inline std::ostream& operator<<(std::ostream& os, const StringifiableValue& sv) {
-	writeTo(os, sv.value);
+	writeTo(os, sv.value, sv.pretty);
 	return os;
 }
 
 struct WriterVisitor : nosj::ConstVisitor {
 	std::ostream& os;
-	bool pretty;
 
-	WriterVisitor(std::ostream& os, bool pretty) : os(os), pretty(pretty) {}
+	WriterVisitor(std::ostream& os) : os(os) {}
 
 	void visit(const Null&)            override { os << "null"; }
 
@@ -73,9 +72,60 @@ struct WriterVisitor : nosj::ConstVisitor {
 		os << std::hex << std::uppercase << (int)ch;
 	}
 
-	void visit(const Array&) override NOT_IMPLEMENTED;
+	void visit(const Array& array) override {
+		os << '[';
+		bool first = true;
+		for(auto& value : array) {
+			if(!first) {
+				os << ',';
+			}
+			value.accept(*this);
+			first = false;
+		}
+		os << ']';
+	}
 
 	void visit(const Object&) override NOT_IMPLEMENTED;
+};
+
+struct PrettyWriterVisitor : WriterVisitor {
+
+	const std::string indentString;
+	size_t indentLevel = 0;
+
+	void indent() {
+		for(size_t i = 0; i < indentLevel; i++) {
+			os << indentString;
+		}
+	}
+
+	PrettyWriterVisitor(std::ostream& os) : WriterVisitor(os), indentString("   ") {}
+
+	void visit(const Array& array) override {
+		if(array.size() <= 1) {
+			WriterVisitor::visit(array);
+		} else {
+			os << '[';
+
+			indentLevel++;
+			bool first = true;
+			for(auto& value : array) {
+				if(!first) {
+					os << ',';
+				}
+
+				os << std::endl;
+				indent();
+				value.accept(*this);
+				first = false;
+			}
+			os << std::endl;
+			indentLevel--;
+			indent();
+			os << ']';
+		}
+	}
+
 };
 
 }
@@ -101,8 +151,13 @@ inline std::string stringify(const Value& value, bool pretty) {
 }
 
 inline void writeTo(std::ostream& os, const Value& value, bool pretty) {
-	_details::WriterVisitor visitor(os, pretty);
-	value.accept(visitor);
+	if(pretty) {
+		_details::PrettyWriterVisitor visitor(os);
+		value.accept(visitor);
+	} else {
+		_details::WriterVisitor visitor(os);
+		value.accept(visitor);
+	}
 }
 
 }

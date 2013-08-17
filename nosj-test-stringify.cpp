@@ -95,6 +95,56 @@ void test_stringify_string() {
 	assert_stringify("Hello\nGood bye!", R"("Hello\nGood bye!")");
 }
 
+void test_stringify_array() {
+	assert_stringify(nosj::emptyArray, "[]");
+
+	assert_stringify(nosj::Array{"nosj"}, R"(["nosj"])");
+
+	assert_stringify(
+			nosj::Array {
+					true,
+					nosj::null,
+					7,
+					1.25
+			},
+
+			"[true,null,7,1.25]",
+
+			"[\n"
+			"   true,\n"
+			"   null,\n"
+			"   7,\n"
+			"   1.25\n"
+			"]"
+	);
+
+	assert_stringify(
+			nosj::Array {
+					"nosj",
+					nosj::Array {
+							nosj::null,
+							false,
+							34
+					},
+					7.0,
+					nosj::Array { 1.25 }
+			},
+
+			R"(["nosj",[null,false,34],7.0,[1.25]])",
+
+			"[\n"
+			"   \"nosj\",\n"
+			"   [\n"
+			"      null,\n"
+			"      false,\n"
+			"      34\n"
+			"   ],\n"
+			"   7.0,\n"
+			"   [1.25]\n"
+			"]"
+	);
+}
+
 }
 
 namespace tests {
@@ -103,5 +153,6 @@ namespace tests {
 		TEST(stringify_boolean);
 		TEST(stringify_number);
 		TEST(stringify_string);
+		TEST(stringify_array);
 	}
 }
