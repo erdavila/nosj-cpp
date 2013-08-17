@@ -42,6 +42,9 @@ inline void writeTo(std::ostream& os, const Value& value, bool pretty) {
 	case Value::Type::NullValue:
 		os << "null";
 		break;
+	case Value::Type::BooleanValue:
+		os << (value.asBoolean() ? "true" : "false");
+		break;
 	default:
 		NOT_IMPLEMENTED
 	}

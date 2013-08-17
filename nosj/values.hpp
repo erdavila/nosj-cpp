@@ -150,7 +150,7 @@ public:
 	Object&  asObject();
 
 	const Null&    asNull()    const NOT_IMPLEMENTED;
-	const Boolean& asBoolean() const NOT_IMPLEMENTED;
+	const Boolean& asBoolean() const;
 	const Number&  asNumber()  const;
 	const String&  asString()  const NOT_IMPLEMENTED;
 	const Array&   asArray()   const NOT_IMPLEMENTED;

@@ -46,10 +46,16 @@ void test_stringify_null() {
 	assert_stringify(nosj::null, "null");
 }
 
+void test_stringify_boolean() {
+	assert_stringify(false, "false");
+	assert_stringify(true, "true");
+}
+
 }
 
 namespace tests {
 	void stringify() {
 		TEST(stringify_null);
+		TEST(stringify_boolean);
 	}
 }

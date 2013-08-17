@@ -147,7 +147,8 @@ inline String&  Value::asString()  { return impl->as<String>(); }
 inline Array&   Value::asArray()   { return impl->as<Array>(); }
 inline Object&  Value::asObject()  { return impl->as<Object>(); }
 
-inline const Number& Value::asNumber() const { return impl->as<Number>(); }
+inline const Boolean& Value::asBoolean() const { return impl->as<Boolean>(); }
+inline const Number&  Value::asNumber()  const { return impl->as<Number>(); }
 
 
 inline bool operator==(const Value& lhs, const Value& rhs) noexcept {
