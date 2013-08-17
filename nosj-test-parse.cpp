@@ -372,12 +372,92 @@ void test_parse_array() {
 			}
 	);
 
+	assert_parse(
+			join_lines({
+				R"([)",
+				R"(   {)",
+				R"(      "name" : "John",)",
+				R"(      "age" : 34)",
+				R"(   },)",
+				R"(   1.25,)",
+				R"(   {)",
+				R"(      "nosj" : true)",
+				R"(   })",
+				R"(])",
+			}),
+			nosj::Array {
+					nosj::Object {
+							{ "name", "John" },
+							{ "age" , 34 },
+					},
+					1.25,
+					nosj::Object {
+							{ "nosj", true }
+					}
+			}
+	);
+
 	assert_parse_incomplete("[");
 	assert_parse_incomplete("[null,");
 	assert_parse_unexpected("[,", ',', 1);
 	assert_parse_unexpected("[null,]", ']', 6);
 	assert_parse_unexpected("[null,,]", ',', 6);
 	assert_parse_unexpected("[null null]", 'n', 6);
+}
+
+void test_parse_object() {
+	assert_parse("{}",    nosj::emptyObject);
+	assert_parse(" { } ", nosj::emptyObject, 4);
+
+	assert_parse(R"({"key":null})",       nosj::Object{{"key", nosj::null}});
+	assert_parse(R"( { "key" : null } )", nosj::Object{{"key", nosj::null}}, 17);
+
+	assert_parse(
+			R"({"name":"John","age":34.25,"children":[12,7],"married":true})",
+			nosj::Object {
+					{ "name",     "John" },
+					{ "age",      34.25 },
+					{ "children", nosj::Array{12, 7} },
+					{ "married",  true },
+			}
+	);
+
+	assert_parse(
+			join_lines({
+					R"({)",
+					R"(  "name"     : "John",)",
+					R"(  "age"      : 34.25,)",
+					R"(  "children" : [)",
+					R"(    12,)",
+					R"(    7)",
+					R"(  ],)",
+					R"(  "married"  : true)",
+					R"(})",
+			}),
+			nosj::Object {
+					{ "name",     "John" },
+					{ "age",      34.25 },
+					{ "children", nosj::Array{12, 7} },
+					{ "married",  true },
+			}
+	);
+
+	assert_parse_incomplete("{");
+	assert_parse_unexpected("{,}", ',', 1);
+	assert_parse_unexpected("{null}", 'n', 1);
+	assert_parse_unexpected("{7}", '7', 1);
+	assert_parse_unexpected("{[]}", '[', 1);
+	assert_parse_incomplete(R"({"key")");
+	assert_parse_unexpected(R"({"key"})", '}', 6);
+	assert_parse_unexpected(R"({"key",)", ',', 6);
+	assert_parse_unexpected(R"({"key""value"})", '"', 6);
+	assert_parse_unexpected(R"({"key":})", '}', 7);
+	assert_parse_unexpected(R"({"key":,"value"})", ',', 7);
+	assert_parse_unexpected(R"({"key"::"value"})", ':', 7);
+	assert_parse_incomplete(R"({"key":"value")");
+	assert_parse_unexpected(R"({"key":"value":})", ':', 14);
+	assert_parse_unexpected(R"({"key":"value",})", '}', 15);
+	assert_parse_unexpected(R"({"key":"value",,})", ',', 15);
 }
 
 void test_parse_invalid() {
@@ -394,6 +474,7 @@ namespace tests {
 		TEST(parse_number);
 		TEST(parse_string);
 		TEST(parse_array);
+		TEST(parse_object);
 		TEST(parse_invalid);
 	}
 }

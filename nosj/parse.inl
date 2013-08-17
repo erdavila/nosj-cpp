@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifdef __CYGWIN__
 
 #include <iomanip>
@@ -49,7 +51,7 @@ inline UnexpectedCharacter::UnexpectedCharacter(char character, unsigned int pos
 	ostr << "Unexpected character '\\u";
 	ostr.fill('0');
 	ostr.width(4);
-	ostr << std::hex << int(character) << "' at position " << position;
+	ostr << std::hex << std::uppercase << int(character) << "' at position " << position;
 	message = ostr.str();
 }
 
@@ -74,6 +76,7 @@ struct Reader {
 			case 't': return readBooleanTrue();
 			case '"': return readString();
 			case '[': return readArray();
+			case '{': return readObject();
 			default:
 				if(isDigit(nextCh)  ||  nextCh == '-') {
 					return readNumber();
@@ -100,9 +103,9 @@ struct Reader {
 	void readToken(const char* token) {
 		for(; *token != '\0'; token++) {
 			istream::int_type expectedCh = *token;
-			istream::int_type ch = extractNextChar();
+			istream::int_type ch = extractChar();
 			if(ch != expectedCh) {
-				throwUnexpectedPreviousChar(ch);
+				throwUnexpectedExtractedChar(ch);
 			}
 		}
 	}
@@ -112,7 +115,7 @@ struct Reader {
 		Number::Type type = Number::Type::IntegerNumber;
 
 		if(nextChar() == '-') {
-			numberString += extractNextChar();
+			numberString += extractChar();
 		}
 
 		auto ch = readDigit();
@@ -122,19 +125,19 @@ struct Reader {
 		}
 
 		if(nextChar() == '.') {
-			numberString += extractNextChar();
+			numberString += extractChar();
 			type = Number::Type::FloatNumber;
 			numberString += readDigits();
 		}
 
 		ch = nextChar();
 		if(ch == 'e'  ||  ch == 'E') {
-			numberString += extractNextChar();
+			numberString += extractChar();
 			type = Number::Type::FloatNumber;
 
 			ch = nextChar();
 			if(ch == '-'  ||  ch == '+') {
-				numberString += extractNextChar();
+				numberString += extractChar();
 			}
 
 			numberString += readDigits();
@@ -153,9 +156,9 @@ struct Reader {
 	}
 
 	istream::char_type readDigit() {
-		istream::int_type ch = extractNextChar();
+		istream::int_type ch = extractChar();
 		if(!isDigit(ch)) {
-			throwUnexpectedPreviousChar(ch);
+			throwUnexpectedExtractedChar(ch);
 		}
 		return ch;
 	}
@@ -163,7 +166,7 @@ struct Reader {
 	std::string readOptionalDigits() {
 		std::string digits;
 		while(isDigit(nextChar())) {
-			digits += extractNextChar();
+			digits += extractChar();
 		}
 		return digits;
 	}
@@ -171,14 +174,14 @@ struct Reader {
 	std::string readString() {
 		std::string str;
 
-		auto ch = extractNextChar();
+		auto ch = extractChar();
 		if(ch != '"') {
-			throwUnexpectedPreviousChar(ch);
+			throwUnexpectedExtractedChar(ch);
 		}
 
 		bool finished = false;
 		do {
-			ch = extractNextChar();
+			ch = extractChar();
 			if(ch == '"') {
 				finished = true;
 			} else if(ch == '\\') {
@@ -190,7 +193,7 @@ struct Reader {
 			} else if(ch >= 0x20) {
 				str += ch;
 			} else {
-				throwUnexpectedPreviousChar(ch);
+				throwUnexpectedExtractedChar(ch);
 			}
 		} while(!finished);
 
@@ -200,7 +203,7 @@ struct Reader {
 	char32_t completeUTF16Char(unsigned int lead) {
 		unsigned int position = positionNextChar;
 
-		auto ch = extractNextChar();
+		auto ch = extractChar();
 		if(ch != '\\') {
 			throw ExpectedTrailCodePoint(position);
 		}
@@ -226,7 +229,7 @@ struct Reader {
 	}
 
 	char32_t readEscapedChar() {
-		auto ch = extractNextChar();
+		auto ch = extractChar();
 		switch(ch) {
 
 		case '"':
@@ -242,7 +245,7 @@ struct Reader {
 		case 'u': return readHexCodePoint();
 
 		default:
-			throwUnexpectedPreviousChar(ch);
+			throwUnexpectedExtractedChar(ch);
 		}
 	}
 
@@ -251,7 +254,7 @@ struct Reader {
 		for(int i = 0; i < 4; i++) {
 			int hexDigitValue;
 
-			auto hexDigit = extractNextChar();
+			auto hexDigit = extractChar();
 			if(hexDigit >= '0'  &&  hexDigit <= '9') {
 				hexDigitValue = hexDigit - '0';
 			} else if(hexDigit >= 'a'  &&  hexDigit <= 'f') {
@@ -259,7 +262,7 @@ struct Reader {
 			} else if(hexDigit >= 'A'  &&  hexDigit <= 'F') {
 				hexDigitValue = hexDigit - 'A' + 10;
 			} else {
-				throwUnexpectedPreviousChar(hexDigit);
+				throwUnexpectedExtractedChar(hexDigit);
 			}
 
 			codePoint = (codePoint << 4) + hexDigitValue;
@@ -300,15 +303,15 @@ struct Reader {
 	}
 
 	Array readArray() {
-		auto ch = extractNextChar();
+		auto ch = extractChar();
 		if(ch != '[') {
-			throwUnexpectedPreviousChar(ch);
+			throwUnexpectedExtractedChar(ch);
 		}
 
 		skipWhitespaces();
 		ch = nextChar();
 		if(ch == ']') {
-			extractNextChar();
+			extractChar();
 			return emptyArray;
 		}
 
@@ -318,28 +321,68 @@ struct Reader {
 			array.push_back(std::move(value));
 
 			skipWhitespaces();
-			ch = extractNextChar();
+			ch = extractChar();
 			if(ch == ']') {
 				break;
 			} else if(ch != ',') {
-				throwUnexpectedPreviousChar(ch);
+				throwUnexpectedExtractedChar(ch);
 			}
 		}
 		return array;
+	}
+
+	Object readObject() {
+		auto ch = extractChar();
+		if(ch != '{') {
+			throwUnexpectedExtractedChar(ch);
+		}
+
+		skipWhitespaces();
+		ch = nextChar();
+		if(ch == '}') {
+			extractChar();
+			return emptyObject;
+		}
+
+		Object object;
+		while(true) {
+			String key = readString();
+
+			skipWhitespaces();
+			ch = extractChar();
+			if(ch != ':') {
+				throwUnexpectedExtractedChar(ch);
+			}
+
+			Value value = readValue();
+			auto pair = std::make_pair(std::move(key), std::move(value));
+			object.insert(std::move(pair));
+
+			skipWhitespaces();
+			ch = extractChar();
+			if(ch == '}') {
+				break;
+			} else if(ch != ',') {
+				throwUnexpectedExtractedChar(ch);
+			}
+
+			skipWhitespaces();
+		}
+		return object;
 	}
 
 	void skipWhitespaces() {
 		do {
 			auto ch = nextChar();
 			if(isWhitespace(ch)) {
-				extractNextChar();
+				extractChar();
 			} else {
 				break;
 			}
 		} while(true);
 	}
 
-	istream::int_type extractNextChar() {
+	istream::int_type extractChar() {
 		istream::int_type ch = is.get();
 		positionNextChar++;
 		return ch;
@@ -372,7 +415,7 @@ struct Reader {
 	}
 
 	__attribute__((noreturn))
-	void throwUnexpectedPreviousChar(istream::int_type ch) {
+	void throwUnexpectedExtractedChar(istream::int_type ch) {
 		throwUnexpectedChar(ch, positionNextChar-1);
 	}
 
