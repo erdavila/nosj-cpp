@@ -1,5 +1,3 @@
-#include <array>
-
 namespace nosj {
 
 
@@ -29,19 +27,32 @@ struct Reader {
 		skipWhitespaces();
 		istream::int_type ch = readNextChar();
 		switch(ch) {
-			case 'n':
-				return readNull();
-			default:
-				throwUnexpectedNextChar();
+			case 'n': return readNull();
+			case 'f': return readBooleanFalse();
+			case 't': return readBooleanTrue();
+			default:   throwUnexpectedNextChar();
 		}
 	}
 
 	Value readNull() {
-		const std::array<istream::char_type, 4> nullToken = {{ 'n', 'u', 'l', 'l' }};
+		readToken("null");
+		return null;
+	}
 
-		for(istream::int_type expectedCh : nullToken) {
+	Value readBooleanFalse() {
+		readToken("false");
+		return false;
+	}
+
+	Value readBooleanTrue() {
+		readToken("true");
+		return true;
+	}
+
+	void readToken(const char* token) {
+		for(; *token != '\0'; token++) {
+			istream::int_type expectedCh = *token;
 			istream::int_type ch = extractNextChar();
-
 			if(ch != expectedCh) {
 				throwUnexpectedPreviousChar(ch);
 			}
@@ -51,8 +62,6 @@ struct Reader {
 		if(ch != istream::traits_type::eof()  &&  !isWhitespace(ch)) {
 			throwUnexpectedNextChar();
 		}
-
-		return null;
 	}
 
 	void skipWhitespaces() {

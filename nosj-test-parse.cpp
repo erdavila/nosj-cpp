@@ -93,7 +93,7 @@ void assert_parse_string_incomplete(const std::string& str) {
 	}
 }
 
-void assert_parse(const std::string& str, const nosj::Value& expectedValue, std::istream::streampos expectedPosition) {
+void assert_parse(const std::string& str, const nosj::Value& expectedValue, std::istream::streampos expectedPosition = -1) {
 	assert_parse_stream(str, expectedValue, expectedPosition);
 	assert_parse_string(str, expectedValue);
 }
@@ -116,8 +116,8 @@ void assert_parse_incomplete(const std::string& str) {
 }
 
 void test_parse_null() {
-	assert_parse("null", nosj::null, -1);
-	assert_parse(" null", nosj::null, -1);
+	assert_parse("null", nosj::null);
+	assert_parse(" null", nosj::null);
 	assert_parse("null ", nosj::null, 4);
 	assert_parse_stream_ok_but_string_unexpected("null null", nosj::null, 4, 'n', 5);
 	assert_parse_unexpected("noll", 'o', 1);
@@ -125,10 +125,29 @@ void test_parse_null() {
 	assert_parse_incomplete("nul");
 }
 
+void test_parse_boolean() {
+	assert_parse("false", false);
+	assert_parse(" false", false);
+	assert_parse("false ", false, 5);
+	assert_parse_stream_ok_but_string_unexpected("false null", false, 5, 'n', 6);
+	assert_parse_unexpected("folse", 'o', 1);
+	assert_parse_unexpected("falsee", 'e', 5);
+	assert_parse_incomplete("fals");
+
+	assert_parse("true", true);
+	assert_parse(" true", true);
+	assert_parse("true ", true, 4);
+	assert_parse_stream_ok_but_string_unexpected("true null", true, 4, 'n', 5);
+	assert_parse_unexpected("tlue", 'l', 1);
+	assert_parse_unexpected("truee", 'e', 4);
+	assert_parse_incomplete("tru");
+}
+
 }
 
 namespace tests {
 	void parse() {
 		TEST(parse_null);
+		TEST(parse_boolean);
 	}
 }
