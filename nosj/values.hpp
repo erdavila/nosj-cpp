@@ -113,7 +113,7 @@ public:
 	Value(bool) noexcept;
 
 	Value(const Number&) noexcept;
-	Value(Number&&)      noexcept NOT_IMPLEMENTED;
+	Value(Number&&)      noexcept;
 
 	Value(int)             noexcept;
 	Value(long int)        noexcept;

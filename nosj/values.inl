@@ -123,6 +123,7 @@ inline Value::Value(Null value) noexcept : impl(new _details::NullImpl(value)) {
 inline Value::Value(bool value) noexcept : impl(new _details::BooleanImpl(value)) {}
 
 inline Value::Value(const Number& value) noexcept : impl(new _details::NumberImpl(value)) {}
+inline Value::Value(Number&& value)      noexcept : impl(new _details::NumberImpl(std::forward<Number>(value))) {}
 
 inline Value::Value(int value)             noexcept : impl(new _details::NumberImpl(value)) {}
 inline Value::Value(long int value)        noexcept : impl(new _details::NumberImpl(value)) {}
