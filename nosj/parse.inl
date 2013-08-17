@@ -72,6 +72,7 @@ struct Reader {
 			case 'n': return readNull();
 			case 'f': return readBooleanFalse();
 			case 't': return readBooleanTrue();
+			case '"': return readString();
 			default:
 				if(isDigit(nextCh)  ||  nextCh == '-') {
 					return readNumber();
@@ -164,6 +165,137 @@ struct Reader {
 			digits += extractNextChar();
 		}
 		return digits;
+	}
+
+	std::string readString() {
+		std::string str;
+
+		auto ch = extractNextChar();
+		if(ch != '"') {
+			throwUnexpectedPreviousChar(ch);
+		}
+
+		bool finished = false;
+		do {
+			ch = extractNextChar();
+			if(ch == '"') {
+				finished = true;
+			} else if(ch == '\\') {
+				auto ch = readEscapedChar();
+				if(isLeadSurrogate(ch)) {
+					ch = completeUTF16Char(ch);
+				}
+				str += utf8Encode(ch);
+			} else if(ch >= 0x20) {
+				str += ch;
+			} else {
+				throwUnexpectedPreviousChar(ch);
+			}
+		} while(!finished);
+
+		return str;
+	}
+
+	char32_t completeUTF16Char(unsigned int lead) {
+		unsigned int position = positionNextChar;
+
+		auto ch = extractNextChar();
+		if(ch != '\\') {
+			throw ExpectedTrailCodePoint(position);
+		}
+
+		auto trail = readEscapedChar();
+		if(!isTrailSurrogate(trail)) {
+			throw ExpectedTrailCodePoint(position);
+		}
+
+		ch  = (lead  - 0xD800) << 10;
+		ch |= (trail - 0xDC00);
+		ch += 0x010000;
+
+		return ch;
+	}
+
+	static bool isLeadSurrogate(istream::int_type ch) {
+		return ch >= 0xD800  &&  ch <= 0xDBFF;
+	}
+
+	static bool isTrailSurrogate(istream::int_type ch) {
+		return ch >= 0xDC00  &&  ch <= 0xDFFF;
+	}
+
+	char32_t readEscapedChar() {
+		auto ch = extractNextChar();
+		switch(ch) {
+
+		case '"':
+		case '/':
+		case '\\':
+			return ch;
+
+		case 'b': return 0x08;
+		case 'f': return 0x0C;
+		case 'n': return 0x0A;
+		case 'r': return 0x0D;
+		case 't': return 0x09;
+		case 'u': return readHexCodePoint();
+
+		default:
+			throwUnexpectedPreviousChar(ch);
+		}
+	}
+
+	char32_t readHexCodePoint() {
+		char32_t codePoint = 0;
+		for(int i = 0; i < 4; i++) {
+			int hexDigitValue;
+
+			auto hexDigit = extractNextChar();
+			if(hexDigit >= '0'  &&  hexDigit <= '9') {
+				hexDigitValue = hexDigit - '0';
+			} else if(hexDigit >= 'a'  &&  hexDigit <= 'f') {
+				hexDigitValue = hexDigit - 'a' + 10;
+			} else if(hexDigit >= 'A'  &&  hexDigit <= 'F') {
+				hexDigitValue = hexDigit - 'A' + 10;
+			} else {
+				throwUnexpectedPreviousChar(hexDigit);
+			}
+
+			codePoint = (codePoint << 4) + hexDigitValue;
+		}
+		return codePoint;
+	}
+
+	static std::string utf8Encode(char32_t ch) {
+		if(ch <= 0x7F) {
+			return std::string{(char)ch};
+		} else {
+			int leadingIndicator;
+			int continuationBytes;
+
+			if(ch <= 0x07FF) {
+				leadingIndicator = 0xC0; // 110xxxxx
+				continuationBytes = 1;
+			} else if(ch <= 0xFFFF) {
+				leadingIndicator = 0xE0; // 1110xxxx
+				continuationBytes = 2;
+			} else if(ch <= 0x10FFFF) {
+				leadingIndicator = 0xF0; // 11110xxx
+				continuationBytes = 3;
+			} else {
+				NOT_IMPLEMENTED
+			}
+
+			enum { continuationIndicator = 0x80 }; // 10xxxxxx
+			char bytes[] = {0, 0, 0, 0, 0};
+			for(; continuationBytes > 0; continuationBytes--) {
+				bytes[continuationBytes] = (0x3F/*00111111*/ & ch) | continuationIndicator;
+				ch >>= 6;
+			}
+			bytes[0] = ch | leadingIndicator;
+
+			return bytes;
+		}
 	}
 
 	void skipWhitespaces() {

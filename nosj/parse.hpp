@@ -26,6 +26,13 @@ private:
 	std::string message;
 };
 
+class ExpectedTrailCodePoint : public ParseException {
+public:
+	unsigned int position;
+	ExpectedTrailCodePoint(unsigned int position) : position(position) {}
+};
+
+
 std::istream& operator>>(std::istream&, Value&);
 
 Value parse(const std::string&);

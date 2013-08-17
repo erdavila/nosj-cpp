@@ -195,6 +195,134 @@ void test_parse_number() {
 	assert_parse_unexpected("+", '+', 0);
 }
 
+void assert_parse_stream_expected_trail(const std::string& str, unsigned int expectedPosition) {
+	nosj::Value v;
+	std::istringstream is(str);
+
+	try {
+		is >> v;
+		assert(false);
+	} catch(nosj::ExpectedTrailCodePoint& e) {
+		assert(e.position == expectedPosition);
+	}
+
+	is.seekg(0);
+	try {
+		nosj::readFrom(is);
+		assert(false);
+	} catch(nosj::ExpectedTrailCodePoint& e) {
+		assert(e.position == expectedPosition);
+	}
+}
+
+void assert_parse_string_expected_trail(const std::string& str, unsigned int expectedPosition) {
+	try {
+		nosj::parse(str);
+		assert(false);
+	} catch(nosj::ExpectedTrailCodePoint& e) {
+		assert(e.position == expectedPosition);
+	}
+}
+
+void assert_parse_expected_trail(const std::string& str, unsigned int expectedPosition) {
+	assert_parse_stream_expected_trail(str, expectedPosition);
+	assert_parse_string_expected_trail(str, expectedPosition);
+}
+
+void test_parse_string() {
+	assert_parse(R"("")", "");
+
+	assert_parse(R"("\u0000")", std::string{'\x0'});
+	assert_parse_unexpected(std::string{'"', '\x0', '"'}, '\x0', 1);
+
+	assert_parse(R"("\u0001")", "\x1");
+	assert_parse(R"("\u0002")", "\x2");
+
+	assert_parse(R"("\b")",     "\b");
+	assert_parse(R"("\u0008")", "\b");
+	assert_parse_unexpected(std::string{'"', '\b', '"'}, '\b', 1);
+
+	assert_parse(R"("\t")",     "\t");
+	assert_parse(R"("\u0009")", "\t");
+	assert_parse_unexpected(std::string{'"', '\t', '"'}, '\t', 1);
+
+	assert_parse(R"("\n")",     "\n");
+	assert_parse(R"("\u000A")", "\n");
+	assert_parse(R"("\u000a")", "\n");
+	assert_parse_unexpected(std::string{'"', '\n', '"'}, '\n', 1);
+
+	assert_parse(R"("\f")",     "\f");
+	assert_parse(R"("\u000C")", "\f");
+	assert_parse(R"("\u000c")", "\f");
+	assert_parse_unexpected(std::string{'"', '\f', '"'}, '\f', 1);
+
+	assert_parse(R"("\r")",     "\r");
+	assert_parse(R"("\u000D")", "\r");
+	assert_parse(R"("\u000d")", "\r");
+	assert_parse_unexpected(std::string{'"', '\r', '"'}, '\r', 1);
+
+	assert_parse(R"("\u001F")", "\x1F");
+	assert_parse(R"("\u001f")", "\x1F");
+	assert_parse_unexpected(std::string{'"', '\x1F', '"'}, '\x1F', 1);
+
+	assert_parse(R"(" ")",      " ");
+	assert_parse(R"("\u0020")", " ");
+
+	assert_parse(R"("\"")",     R"(")");
+	assert_parse(R"("\u0022")", R"(")");
+
+	assert_parse(R"("\/")",     R"(/)");
+	assert_parse(R"("/")",      R"(/)");
+	assert_parse(R"("\u002F")", R"(/)");
+	assert_parse(R"("\u002f")", R"(/)");
+
+	assert_parse(R"("\\")",     R"(\)");
+	assert_parse(R"("\u005C")", R"(\)");
+	assert_parse(R"("\u005c")", R"(\)");
+
+	assert_parse(R"("z")",      "z");
+	assert_parse(R"("\u007A")", "z");
+	assert_parse(R"("\u007a")", "z");
+
+	assert_parse(R"("~")",      "~");
+	assert_parse(R"("\u007E")", "~");
+	assert_parse(R"("\u007e")", "~");
+
+	assert_parse(std::string{'"', '\x7F', '"'}, "\x7F");
+	assert_parse(R"("\u007F")", "\x7F");
+	assert_parse(R"("\u007f")", "\x7F");
+
+	assert_parse(R"("\u0080")", u8"\u0080");
+	assert_parse(R"("\u6C34")", u8"\u6C34");
+	assert_parse(R"("\uFFFE")", u8"\uFFFE");
+
+	//assert_parse(R"("\uFFFF")", u8"\uFFFF");   See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41698
+	assert_parse(R"("\uFFFF")", "\xEF\xBF\xBF");
+
+	assert_parse(R"("\uD800\uDC00")", u8"\U00010000");
+
+	assert_parse(R"("\uD834\uDD1E")", u8"\U0001D11E");
+	assert_parse(u8"\"\U0001D11E\"",  u8"\U0001D11E");
+	assert_parse(u8"\"\U0001d11e\"",  u8"\U0001D11E");
+
+	assert_parse(R"("\uD950\uDF21")", u8"\U00064321");
+	assert_parse(u8"\"\U00064321\"",  u8"\U00064321");
+
+	assert_parse(R"("\uDBFF\uDFFD")", u8"\U0010FFFD");
+	assert_parse(u8"\"\U0010FFFD\"",  u8"\U0010FFFD");
+
+	assert_parse(R"("Hello\nGood bye!")", "Hello\nGood bye!");
+
+	assert_parse_expected_trail(R"("\uD800\uD800")", 7);
+	assert_parse_expected_trail(R"("\uD800x")", 7);
+	assert_parse_expected_trail(R"("\uD800")", 7);
+
+	assert_parse_unexpected(R"("\j0000")", 'j', 2);
+	assert_parse_unexpected(R"("\x0000")", 'x', 2);
+	assert_parse_unexpected(R"("\u000")", '"', 6);
+	assert_parse_incomplete(R"("\u000)");
+}
+
 void test_parse_invalid() {
 	assert_parse_incomplete("");
 	assert_parse_incomplete(" ");
@@ -207,6 +335,7 @@ namespace tests {
 		TEST(parse_null);
 		TEST(parse_boolean);
 		TEST(parse_number);
+		TEST(parse_string);
 		TEST(parse_invalid);
 	}
 }
