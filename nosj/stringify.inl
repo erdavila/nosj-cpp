@@ -36,13 +36,42 @@ struct WriterVisitor : nosj::ConstVisitor {
 
 			const std::string& formatted = oss.str();
 			os << formatted;
-			if(formatted.find(L'.') == std::wstring::npos) {
+			if(formatted.find('.') == std::string::npos) {
 				os << ".0";
 			}
 		}
 	}
 
-	void visit(const String&) override NOT_IMPLEMENTED;
+	void visit(const String& string) override {
+		os << '"';
+		for(unsigned char ch : string) {
+			switch(ch) {
+			case '"':
+			case '\\':
+				os << '\\' << (char)ch;
+				break;
+			case '\x08': os << R"(\b)"; break;
+			case '\x0C': os << R"(\f)"; break;
+			case '\x0A': os << R"(\n)"; break;
+			case '\x0D': os << R"(\r)"; break;
+			case '\x09': os << R"(\t)"; break;
+			default:
+				if(ch < 0x20) {
+					writeEscapedChar(ch);
+				} else {
+					os << ch;
+				}
+			}
+		}
+		os << '"';
+	}
+
+	void writeEscapedChar(unsigned ch) {
+		os << R"(\u)";
+		os.fill('0');
+		os.width(4);
+		os << std::hex << std::uppercase << (int)ch;
+	}
 
 	void visit(const Array&) override NOT_IMPLEMENTED;
 
