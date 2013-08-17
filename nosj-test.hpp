@@ -2,10 +2,9 @@
 #define NOSJ_TEST_HPP_
 
 
-#include <cassert>
 #include "nosj/values.hpp"
 
-
+#include <cassert>
 #define assert_eq(A, B)  assert(A == B); assert(B == A); assert(!(A != B)); assert(!(B != A))
 #define assert_neq(A, B) assert(A != B); assert(B != A); assert(!(A == B)); assert(!(B == A))
 #define assert_throws(CODE, EX) try { CODE; assert(false); } catch(EX&) { assert(true); }

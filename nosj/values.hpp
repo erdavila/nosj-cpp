@@ -8,7 +8,8 @@
 #include <utility>
 
 
-#define NOT_IMPLEMENTED { assert(! "implemented"); }
+#include <cassert> // TEMPORARY!!!
+#define NOT_IMPLEMENTED { assert(! "implemented"); } // TEMPORARY!!!
 
 
 namespace nosj {

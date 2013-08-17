@@ -1,19 +1,21 @@
+#include <string>
 #include <iostream>
-#include <cassert>
-#include <cstdlib>
-#include <sys/resource.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#ifndef NOFORK
+# include <cstdlib>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <unistd.h>
+#endif
+#include "compat.hpp"
 
 using namespace std;
 
 #define GREEN "\e[32m"
-#define RED "\e[31m"
+#define RED   "\e[31m"
 #define CLEAR "\e[0m"
 
 namespace /*unnamed*/ {
+
 	size_t passedCount = 0;
 	size_t failedCount = 0;
 
@@ -69,9 +71,7 @@ namespace tests {
 
 
 int main() {
-	struct rlimit rlim;
-	rlim.rlim_cur = rlim.rlim_max = 128 * 1024 * 1024;
-	assert(setrlimit(RLIMIT_AS, &rlim) == 0);
+	setMemoryLimit(128 * 1024 * 1024);
 
 	tests::number();
 	tests::value_null();
