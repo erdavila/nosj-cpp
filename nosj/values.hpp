@@ -9,6 +9,7 @@
 
 #include <cassert> // TEMPORARY!!!
 #define NOT_IMPLEMENTED { assert(! "implemented"); } // TEMPORARY!!!
+#define NOT_TESTED { assert(! "tested"); } // TEMPORARY!!!
 
 
 namespace nosj {
