@@ -28,10 +28,6 @@ typedef std::deque<Value> Array;
 typedef std::unordered_map<String, Value> Object;
 
 
-namespace { // Unnamed namespace
-	constexpr Null null;
-}
-
 inline constexpr bool operator==(const Null&, const Null&) { return true; }
 inline constexpr bool operator!=(const Null&, const Null&) { return false; }
 
@@ -96,6 +92,10 @@ private:
 };
 
 
+class Visitor;
+class ConstVisitor;
+
+
 class Value {
 public:
 	enum Type {
@@ -103,16 +103,15 @@ public:
 		StringValue, ArrayValue, ObjectValue
 	};
 
-	Value() noexcept : Value(null) {}
-
-	Value(Null) noexcept;
-
 	Value(const Value&) noexcept;
 	Value(Value&&)      noexcept NOT_IMPLEMENTED;
 
+	Value()     noexcept : Value(Null()) {}
+	Value(Null) noexcept;
+
 	Value(bool) noexcept;
 
-	Value(const Number&) noexcept NOT_IMPLEMENTED;
+	Value(const Number&) noexcept;
 	Value(Number&&)      noexcept NOT_IMPLEMENTED;
 
 	Value(int)             noexcept;
@@ -135,6 +134,9 @@ public:
 	~Value() noexcept;
 
 	Value& operator=(Value);
+
+	void accept(Visitor& visitor);
+	void accept(ConstVisitor& visitor) const;
 
 	Type type() const noexcept;
 
@@ -166,6 +168,34 @@ private:
 };
 
 inline bool operator!=(const Value& lhs, const Value& rhs) noexcept { return !(lhs == rhs); }
+
+
+namespace { // Unnamed namespace
+	constexpr Null null;
+	const Array emptyArray;
+	const Object emptyObject;
+}
+
+
+struct Visitor {
+	virtual ~Visitor() = default;
+	virtual void visit(Null&)    = 0;
+	virtual void visit(Boolean&) = 0;
+	virtual void visit(Number&)  = 0;
+	virtual void visit(String&)  = 0;
+	virtual void visit(Array&)   = 0;
+	virtual void visit(Object&)  = 0;
+};
+
+struct ConstVisitor {
+	virtual ~ConstVisitor() = default;
+	virtual void visit(const Null&)    = 0;
+	virtual void visit(const Boolean&) = 0;
+	virtual void visit(const Number&)  = 0;
+	virtual void visit(const String&)  = 0;
+	virtual void visit(const Array&)   = 0;
+	virtual void visit(const Object&)  = 0;
+};
 
 
 } /* namespace nosj */

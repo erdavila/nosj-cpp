@@ -67,6 +67,7 @@ namespace tests {
 	void value_string();
 	void value_array();
 	void value_object();
+	void value_visitor();
 	void stringify();
 }
 
@@ -81,6 +82,7 @@ int main() {
 	tests::value_string();
 	tests::value_array();
 	tests::value_object();
+	tests::value_visitor();
 	tests::stringify();
 
 	cout << endl;

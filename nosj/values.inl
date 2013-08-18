@@ -68,6 +68,8 @@ namespace _details {
 	struct Impl {
 		virtual ~Impl() noexcept = default;
 		virtual Impl* clone() const noexcept = 0;
+		virtual void visit(Visitor&) = 0;
+		virtual void visit(ConstVisitor&) const = 0;
 		virtual Value::Type type() const noexcept = 0;
 		virtual std::pair<Value::Type, void*> typeAndPointer() const noexcept = 0;
 		virtual bool eq(const Impl*) const noexcept = 0;
@@ -86,6 +88,8 @@ namespace _details {
 		BasicImpl(const T& value) : value(value) {}
 		BasicImpl(T&& value)      : value(std::forward<T>(value)) {}
 		virtual Impl* clone() const noexcept override { return new BasicImpl(value); }
+		virtual void visit(     Visitor& visitor)       override { visitor.visit(value); }
+		virtual void visit(ConstVisitor& visitor) const override { visitor.visit(value); }
 		virtual Value::Type type() const noexcept override { return TypeTag<T>::value; }
 		virtual std::pair<Value::Type, void*> typeAndPointer() const noexcept override {
 			T* pointer = const_cast<T*>(&value);
@@ -115,7 +119,10 @@ namespace _details {
 inline Value::Value(const Value& value) noexcept : impl(value.impl->clone()) {}
 
 inline Value::Value(Null value) noexcept : impl(new _details::NullImpl(value)) {}
+
 inline Value::Value(bool value) noexcept : impl(new _details::BooleanImpl(value)) {}
+
+inline Value::Value(const Number& value) noexcept : impl(new _details::NumberImpl(value)) {}
 
 inline Value::Value(int value)             noexcept : impl(new _details::NumberImpl(value)) {}
 inline Value::Value(long int value)        noexcept : impl(new _details::NumberImpl(value)) {}
@@ -137,6 +144,9 @@ inline Value::Value(Object&& value)      noexcept : impl(new _details::ObjectImp
 inline Value::~Value() noexcept { delete impl; }
 
 inline Value& Value::operator=(Value value) { std::swap(impl, value.impl); return *this; }
+
+inline void Value::accept(     Visitor& visitor)       { impl->visit(visitor); }
+inline void Value::accept(ConstVisitor& visitor) const { impl->visit(visitor); }
 
 inline Value::Type Value::type() const noexcept { return impl->type(); }
 
