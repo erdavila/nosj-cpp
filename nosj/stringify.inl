@@ -15,6 +15,40 @@ inline std::ostream& operator<<(std::ostream& os, const StringifiableValue& sv) 
 	return os;
 }
 
+struct WriterVisitor : nosj::ConstVisitor {
+	std::ostream& os;
+	bool pretty;
+
+	WriterVisitor(std::ostream& os, bool pretty) : os(os), pretty(pretty) {}
+
+	void visit(const Null&)            override { os << "null"; }
+
+	void visit(const Boolean& boolean) override { os << (boolean ? "true" : "false"); }
+
+	void visit(const Number& number)   override {
+		if(number.type() == Number::Type::IntegerNumber) {
+			os << number.integerRef();
+		} else {
+			std::ostringstream oss;
+			oss.precision(110);
+			oss.unsetf(oss.floatfield);
+			oss << number.floatRef();
+
+			const std::string& formatted = oss.str();
+			os << formatted;
+			if(formatted.find(L'.') == std::wstring::npos) {
+				os << ".0";
+			}
+		}
+	}
+
+	void visit(const String&) override NOT_IMPLEMENTED;
+
+	void visit(const Array&) override NOT_IMPLEMENTED;
+
+	void visit(const Object&) override NOT_IMPLEMENTED;
+};
+
 }
 
 
@@ -38,37 +72,8 @@ inline std::string stringify(const Value& value, bool pretty) {
 }
 
 inline void writeTo(std::ostream& os, const Value& value, bool pretty) {
-	switch(value.type()) {
-	case Value::Type::NullValue:
-		os << "null";
-		break;
-	case Value::Type::BooleanValue:
-		os << (value.asBoolean() ? "true" : "false");
-		break;
-	case Value::Type::NumberValue: {
-		const Number& number = value.asNumber();
-		switch(number.type()) {
-		case Number::Type::IntegerNumber:
-			os << number.integerRef();
-			break;
-		case Number::Type::FloatNumber:
-			std::ostringstream oss;
-			oss.precision(110);
-			oss.unsetf(oss.floatfield);
-			oss << number.floatRef();
-
-			const std::string& formatted = oss.str();
-			os << formatted;
-			if(formatted.find('.') == std::string::npos) {
-				os << ".0";
-			}
-			break;
-		}
-		break;
-	}
-	default:
-		NOT_IMPLEMENTED
-	}
+	_details::WriterVisitor visitor(os, pretty);
+	value.accept(visitor);
 }
 
 }
