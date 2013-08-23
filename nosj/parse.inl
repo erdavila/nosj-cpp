@@ -1,3 +1,44 @@
+#ifdef __CYGWIN__
+
+#include <iomanip>
+
+namespace _details {
+
+template <typename T>
+T stoX(const std::string& str, size_t* idx, int base) {
+	std::istringstream is(str);
+	T result;
+	if(base >= 0) {
+		is >> std::setbase(base);
+	}
+	is >> result;
+	if(idx) {
+		if(is.eof()) {
+			*idx = str.length();
+		} else {
+			*idx = is.tellg();
+		}
+	}
+	return result;
+}
+
+}
+
+namespace std {
+
+inline long long stoll(const std::string& str, size_t* idx = 0, int base = 10) {
+	return _details::stoX<long long>(str, idx, base);
+}
+
+inline long double stold(const std::string& str, size_t* idx = 0) {
+	return _details::stoX<long double>(str, idx, -1);
+}
+
+}
+
+#endif
+
+
 namespace nosj {
 
 
