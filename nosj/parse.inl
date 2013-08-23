@@ -80,17 +80,17 @@ struct Reader {
 		}
 	}
 
-	Value readNull() {
+	Null readNull() {
 		readToken("null");
 		return null;
 	}
 
-	Value readBooleanFalse() {
+	bool readBooleanFalse() {
 		readToken("false");
 		return false;
 	}
 
-	Value readBooleanTrue() {
+	bool readBooleanTrue() {
 		readToken("true");
 		return true;
 	}
@@ -105,7 +105,7 @@ struct Reader {
 		}
 	}
 
-	Value readNumber() {
+	Number readNumber() {
 		enum State {
 			UNSET,
 			//                Expects:
@@ -215,9 +215,9 @@ struct Reader {
 		}
 
 		if(type == Number::Type::IntegerNumber) {
-			return Number(std::stoll(numberString));
+			return std::stoll(numberString);
 		} else {
-			return Number(std::stold(numberString));
+			return std::stold(numberString);
 		}
 	}
 
