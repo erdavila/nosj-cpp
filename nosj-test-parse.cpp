@@ -4,9 +4,9 @@
 
 namespace /*unnamed*/ {
 
-void assert_stream_position(std::istream& is, std::istream::streampos expectedPosition) {
+void assert_stream_position(std::istringstream& is, std::istream::streampos expectedPosition) {
 	if(expectedPosition == -1) {
-		assert(is.eof());
+		assert(is.eof()  ||  size_t(is.tellg()) == is.str().length());
 	} else {
 		auto pos = is.tellg();
 		assert(pos == expectedPosition);
@@ -108,10 +108,10 @@ void assert_parse(const std::string& str, const nosj::Value& expectedValue, std:
 }
 
 void assert_parse_stream_ok_but_string_unexpected(const std::string& str,
-                                    const nosj::Value expectedStreamValue, std::istream::streampos expectedStreamPosition,
-                                    char unexpectedStringChar, unsigned int unexpectedStringCharPosition) {
-	assert_parse_stream(str, expectedStreamValue, expectedStreamPosition);
-	assert_parse_string_unexpected(str, unexpectedStringChar, unexpectedStringCharPosition);
+                                    const nosj::Value expectedStreamValue, std::istream::streampos consumedChars,
+                                    char unexpectedStringChar) {
+	assert_parse_stream(str, expectedStreamValue, consumedChars);
+	assert_parse_string_unexpected(str, unexpectedStringChar, consumedChars);
 }
 
 void assert_parse_unexpected(const std::string& str, char unexpectedChar, unsigned int unexpectedCharPosition) {
@@ -128,9 +128,8 @@ void test_parse_null() {
 	assert_parse("null", nosj::null);
 	assert_parse(" null", nosj::null);
 	assert_parse("null ", nosj::null, 4);
-	assert_parse_stream_ok_but_string_unexpected("null null", nosj::null, 4, 'n', 5);
+	assert_parse_stream_ok_but_string_unexpected("nullnull", nosj::null, 4, 'n');
 	assert_parse_unexpected("noll", 'o', 1);
-	assert_parse_unexpected("nullo", 'o', 4);
 	assert_parse_incomplete("nul");
 }
 
@@ -138,17 +137,15 @@ void test_parse_boolean() {
 	assert_parse("false", false);
 	assert_parse(" false", false);
 	assert_parse("false ", false, 5);
-	assert_parse_stream_ok_but_string_unexpected("false null", false, 5, 'n', 6);
+	assert_parse_stream_ok_but_string_unexpected("falsenull", false, 5, 'n');
 	assert_parse_unexpected("folse", 'o', 1);
-	assert_parse_unexpected("falsee", 'e', 5);
 	assert_parse_incomplete("fals");
 
 	assert_parse("true", true);
 	assert_parse(" true", true);
 	assert_parse("true ", true, 4);
-	assert_parse_stream_ok_but_string_unexpected("true null", true, 4, 'n', 5);
+	assert_parse_stream_ok_but_string_unexpected("truenull", true, 4, 'n');
 	assert_parse_unexpected("tlue", 'l', 1);
-	assert_parse_unexpected("truee", 'e', 4);
 	assert_parse_incomplete("tru");
 }
 
@@ -156,16 +153,14 @@ void test_parse_number() {
 	assert_parse("0", 0);
 	assert_parse(" 0", 0);
 	assert_parse("0 ", 0, 1);
-	assert_parse_stream_ok_but_string_unexpected("0 null", 0, 1, 'n', 2);
-	assert_parse_unexpected("0null", 'n', 1);
-	assert_parse_unexpected("0123", '1', 1);
+	assert_parse_stream_ok_but_string_unexpected("0null", 0, 1, 'n');
+	assert_parse_stream_ok_but_string_unexpected("0123", 0, 1, '1');
 	assert_parse("-0", -0);
 
 	assert_parse("7", 7);
 	assert_parse(" 7", 7);
 	assert_parse("7 ", 7, 1);
-	assert_parse_stream_ok_but_string_unexpected("7 null", 7, 1, 'n', 2);
-	assert_parse_unexpected("7null", 'n', 1);
+	assert_parse_stream_ok_but_string_unexpected("7null", 7, 1, 'n');
 	assert_parse_unexpected("7.null", 'n', 2);
 	assert_parse_incomplete("7.");
 	assert_parse("-7", -7);
@@ -180,12 +175,12 @@ void test_parse_number() {
 	assert_parse("0.0e0", 0.0);
 	assert_parse_incomplete("0.");
 	assert_parse_incomplete("0e");
-	assert_parse_unexpected("0e0.0", '.', 3);
+	assert_parse_stream_ok_but_string_unexpected("0e0.0", 0.0, 3, '.');
 	assert_parse_unexpected("0.e", 'e', 2);
 	assert_parse_unexpected("0.null", 'n', 2);
 	assert_parse_unexpected("0enull", 'n', 2);
 	assert_parse_unexpected("0e-null", 'n', 3);
-	assert_parse_unexpected("0.0null", 'n', 3);
+	assert_parse_stream_ok_but_string_unexpected("0.0null", 0.0, 3, 'n');
 
 	assert_parse("1.25", 1.25);
 	assert_parse("1e2", 100.0);
@@ -196,7 +191,13 @@ void test_parse_number() {
 	assert_parse("7e13", 70000000000000.0);
 
 	assert_parse_incomplete("-");
+	assert_parse_unexpected("-.", '.', 1);
 	assert_parse_unexpected("+", '+', 0);
+}
+
+void test_parse_invalid() {
+	assert_parse_incomplete("");
+	assert_parse_incomplete(" ");
 }
 
 }
@@ -206,5 +207,6 @@ namespace tests {
 		TEST(parse_null);
 		TEST(parse_boolean);
 		TEST(parse_number);
+		TEST(parse_invalid);
 	}
 }

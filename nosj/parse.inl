@@ -103,11 +103,6 @@ struct Reader {
 				throwUnexpectedPreviousChar(ch);
 			}
 		}
-
-		istream::int_type nextCh = readNextChar();
-		if(!isValueFinalizer(nextCh)) {
-			throwUnexpectedNextChar();
-		}
 	}
 
 	Value readNumber() {
@@ -157,7 +152,7 @@ struct Reader {
 					newState = DECIMAL_POINT;
 				} else if(nextChar == 'e'  ||  nextChar == 'E') {
 					newState = E;
-				} else if(isValueFinalizer(nextChar)) {
+				} else {
 					newState = END;
 				}
 				break;
@@ -166,7 +161,7 @@ struct Reader {
 					newState = DECIMAL_POINT;
 				} else if(nextChar == 'e'  ||  nextChar == 'E') {
 					newState = E;
-				} else if(isValueFinalizer(nextChar)) {
+				} else {
 					newState = END;
 				}
 				break;
@@ -180,7 +175,7 @@ struct Reader {
 					newState = FRAC;
 				} else if(nextChar == 'e'  ||  nextChar == 'E') {
 					newState = E;
-				} else if(isValueFinalizer(nextChar)) {
+				} else {
 					newState = END;
 				}
 				break;
@@ -199,7 +194,7 @@ struct Reader {
 			case EXP:
 				if(isDigit(nextChar)) {
 					newState = EXP;
-				} else if(isValueFinalizer(nextChar)) {
+				} else {
 					newState = END;
 				}
 				break;
@@ -305,7 +300,6 @@ inline Value parse(const std::string& str) {
 
 	return result;
 }
-
 
 inline Value readFrom(std::istream& is) {
 	_details::Reader reader(is);
