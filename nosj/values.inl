@@ -97,7 +97,7 @@ namespace _details {
 			return std::pair<Value::Type, void*>(type, pointer);
 		}
 		virtual bool eq(const Impl* impl) const noexcept override {
-			typedef BasicImpl<T> MyType;
+			using MyType = BasicImpl<T>;
 			const MyType* otherImpl = dynamic_cast<const MyType*>(impl);
 			if(otherImpl) {
 				return value == otherImpl->value;
@@ -106,12 +106,12 @@ namespace _details {
 		}
 	};
 
-	typedef BasicImpl<Null>       NullImpl;
-	typedef BasicImpl<Boolean> BooleanImpl;
-	typedef BasicImpl<Number>   NumberImpl;
-	typedef BasicImpl<String>   StringImpl;
-	typedef BasicImpl<Array>     ArrayImpl;
-	typedef BasicImpl<Object>   ObjectImpl;
+	using    NullImpl = BasicImpl<Null>;
+	using BooleanImpl = BasicImpl<Boolean>;
+	using  NumberImpl = BasicImpl<Number>;
+	using  StringImpl = BasicImpl<String>;
+	using   ArrayImpl = BasicImpl<Array>;
+	using  ObjectImpl = BasicImpl<Object>;
 
 } // namespace _details
 

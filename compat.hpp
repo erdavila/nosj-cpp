@@ -15,7 +15,7 @@ std::string to_string(size_t n) {
 	return ostr.str();
 }
 
-void setMemoryLimit(unsigned long) { }
+void setMemoryLimit(unsigned long) {}
 
 }
 

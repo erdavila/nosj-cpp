@@ -6,7 +6,7 @@
 
 namespace /*unnamed*/ {
 
-typedef std::set<std::string> ExpectedSet;
+using ExpectedSet = std::set<std::string>;
 
 void assert_stringify(const nosj::Value& v, const ExpectedSet& expected, const ExpectedSet& expectedPretty_ = {}) {
 	const ExpectedSet& expectedPretty = expectedPretty_.empty() ? expected : expectedPretty_;

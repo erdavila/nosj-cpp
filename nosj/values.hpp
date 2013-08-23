@@ -22,11 +22,11 @@ class InvalidConversion : public Exception {};
 class Value;
 
 class Null {};
-typedef bool Boolean;
+using Boolean = bool;
 class Number;
-typedef std::string String; // UTF-8 bytes
-typedef std::deque<Value> Array;
-typedef std::unordered_map<String, Value> Object;
+using String = std::string; // UTF-8 bytes
+using Array = std::deque<Value>;
+using Object = std::unordered_map<String, Value>;
 
 
 inline constexpr bool operator==(const Null&, const Null&) { return true; }
@@ -40,8 +40,8 @@ namespace _details {
 
 class Number {
 public:
-	typedef long long int Integer;
-	typedef long double   Float;
+	using Integer = long long int;
+	using Float = long double;
 
 	enum Type {
 		IntegerNumber, FloatNumber
