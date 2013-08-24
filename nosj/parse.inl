@@ -67,13 +67,13 @@ struct Reader {
 
 	Value readValue() {
 		skipWhitespaces();
-		istream::int_type nextChar = readNextChar();
-		switch(nextChar) {
+		istream::int_type nextCh = nextChar();
+		switch(nextCh) {
 			case 'n': return readNull();
 			case 'f': return readBooleanFalse();
 			case 't': return readBooleanTrue();
 			default:
-				if(isDigit(nextChar)  ||  nextChar == '-') {
+				if(isDigit(nextCh)  ||  nextCh == '-') {
 					return readNumber();
 				}
 				throwUnexpectedNextChar();
@@ -106,112 +106,36 @@ struct Reader {
 	}
 
 	Number readNumber() {
-		enum State {
-			UNSET,
-			//                Expects:
-			BEGIN,         // '-', DIGIT
-			SIGN,          // DIGIT
-			INT,           // DIGIT, '.', 'e', END
-			ZERO,          // '.', 'e', END
-			DECIMAL_POINT, // DIGIT
-			FRAC,          // DIGIT, 'e', END
-			E,             // '-', '+', DIGIT
-			E_SIGN,        // DIGIT
-			EXP,           // DIGIT, END
-			END
-		} state = BEGIN;
-
 		std::string numberString;
 		Number::Type type = Number::Type::IntegerNumber;
 
-		while(state != END) {
-			auto nextChar = readNextChar();
+		if(nextChar() == '-') {
+			numberString += extractNextChar();
+		}
 
-			State newState = UNSET;
-			switch(state) {
-			case BEGIN:
-				if(nextChar == '0') {
-					newState = ZERO;
-				} else if(isDigit(nextChar)) {
-					newState = INT;
-				} else if(nextChar == '-') {
-					newState = SIGN;
-				}
-				break;
-			case SIGN:
-				if(nextChar == '0') {
-					newState = ZERO;
-				} else if(isDigit(nextChar)) {
-					newState = INT;
-				}
-				break;
-			case INT:
-				if(isDigit(nextChar)) {
-					newState = INT;
-				} else if(nextChar == '.') {
-					newState = DECIMAL_POINT;
-				} else if(nextChar == 'e'  ||  nextChar == 'E') {
-					newState = E;
-				} else {
-					newState = END;
-				}
-				break;
-			case ZERO:
-				if(nextChar == '.') {
-					newState = DECIMAL_POINT;
-				} else if(nextChar == 'e'  ||  nextChar == 'E') {
-					newState = E;
-				} else {
-					newState = END;
-				}
-				break;
-			case DECIMAL_POINT:
-				if(isDigit(nextChar)) {
-					newState = FRAC;
-				}
-				break;
-			case FRAC:
-				if(isDigit(nextChar)) {
-					newState = FRAC;
-				} else if(nextChar == 'e'  ||  nextChar == 'E') {
-					newState = E;
-				} else {
-					newState = END;
-				}
-				break;
-			case E:
-				if(nextChar == '+'  ||  nextChar == '-') {
-					newState = E_SIGN;
-				} else if(isDigit(nextChar)) {
-					newState = EXP;
-				}
-				break;
-			case E_SIGN:
-				if(isDigit(nextChar)) {
-					newState = EXP;
-				}
-				break;
-			case EXP:
-				if(isDigit(nextChar)) {
-					newState = EXP;
-				} else {
-					newState = END;
-				}
-				break;
-			default:
-				assert(false);
-			}
+		auto ch = readDigit();
+		numberString += ch;
+		if(ch != '0') {
+			numberString += readOptionalDigits();
+		}
 
-			if(newState == UNSET) {
-				throwUnexpectedNextChar();
-			}
-			if(newState == DECIMAL_POINT  ||  newState == E) {
-				type = Number::Type::FloatNumber;
-			}
-			if(newState != END) {
+		if(nextChar() == '.') {
+			numberString += extractNextChar();
+			type = Number::Type::FloatNumber;
+			numberString += readDigits();
+		}
+
+		ch = nextChar();
+		if(ch == 'e'  ||  ch == 'E') {
+			numberString += extractNextChar();
+			type = Number::Type::FloatNumber;
+
+			ch = nextChar();
+			if(ch == '-'  ||  ch == '+') {
 				numberString += extractNextChar();
 			}
-			state = newState;
+
+			numberString += readDigits();
 		}
 
 		if(type == Number::Type::IntegerNumber) {
@@ -221,9 +145,30 @@ struct Reader {
 		}
 	}
 
+	std::string readDigits() {
+		std::string firstDigit = { readDigit() };
+		return firstDigit + readOptionalDigits();
+	}
+
+	istream::char_type readDigit() {
+		istream::int_type ch = extractNextChar();
+		if(!isDigit(ch)) {
+			throwUnexpectedPreviousChar(ch);
+		}
+		return ch;
+	}
+
+	std::string readOptionalDigits() {
+		std::string digits;
+		while(isDigit(nextChar())) {
+			digits += extractNextChar();
+		}
+		return digits;
+	}
+
 	void skipWhitespaces() {
 		do {
-			auto ch = readNextChar();
+			auto ch = nextChar();
 			if(isWhitespace(ch)) {
 				extractNextChar();
 			} else {
@@ -238,7 +183,7 @@ struct Reader {
 		return ch;
 	}
 
-	istream::int_type readNextChar() {
+	istream::int_type nextChar() {
 		return is.peek();
 	}
 
@@ -260,7 +205,7 @@ struct Reader {
 
 	__attribute__((noreturn))
 	void throwUnexpectedNextChar() {
-		auto ch = readNextChar();
+		auto ch = nextChar();
 		throwUnexpectedChar(ch, positionNextChar);
 	}
 

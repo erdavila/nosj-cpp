@@ -24,7 +24,7 @@ void assert_parse_stream(const std::string& str, const nosj::Value& expectedValu
 		assert(expectedValue.asNumber().type() == v.asNumber().type());
 	}
 
-	is.seekg(0);
+	is.clear(); is.seekg(0);
 	v = nosj::readFrom(is);
 	assert_eq(v, expectedValue);
 	assert_stream_position(is, expectedPosition);
