@@ -1,0 +1,34 @@
+- Work with UTF-16 and UTF-32 encodings:
+  - Parse:
+    - Detect encoding of a std::string according to the section "3. Encoding" of the RFC.
+    - std::u16string as UTF-16.
+    - std::u32string as UTF-32.
+  - Stringify:
+    - To std::string, user may choose UTF-8 (default), UTF-16BE or UTF-16LE.
+      - What about UTF-32BE and UTF-32LE?
+    - To std::u16string as UTF-16.
+    - To std::u32string as UTF-32.
+  - What about string values?:
+    - Transparently convert?
+    - Value::operator=(const std::u32string&); // ?!
+    - Value::operator=(const std::u16string&); // ?!
+    - Value::operator=(const std::string&, Encoding encoding = UTF8); // ?!
+    - Value::assign(const std::string&, Encoding encoding = UTF8); // ?!
+    - Value::as????() const; // !?
+    - Replace nosj::String alias with a real class that converts?
+      - String::operator=(const std::u32string&);
+      - String::operator=(const std::u16string&);
+      - String::operator=(const std::string&, Encoding encoding = UTF8); // ?!
+      - String::assign(const std::string&, Encoding encoding = UTF8); // ?!
+      - std::string    String::toUTF16BE() const;
+      - std::string    String::toUTF16LE() const;
+      - std::string    String::toUTF32BE() const;
+      - std::string    String::toUTF32LE() const;
+      - std::string    String::toUTF8() const;
+      - std::u16string String::toUTF16() const;
+      - std::u32string String::toUTF32() const;
+      - std::string&    String::stringRef();     // may throw
+      - std::u16string& String::u16stringRef();  // may throw
+      - std::u32string& String::u32stringRef();  // may throw
+  - Wait for implementation of <codecvt> (or std::wstring_convert) on GCC?
+    - Related: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53683
