@@ -1,5 +1,3 @@
-- Move tests to a sub-directory
-
 - Work with UTF-16 and UTF-32 encodings:
   - Parse:
     - Detect encoding of a std::string according to the section "3. Encoding" of the RFC.
