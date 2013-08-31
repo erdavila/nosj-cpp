@@ -7,11 +7,6 @@
 #include <unordered_map>
 
 
-#include <cassert> // TEMPORARY!!!
-#define NOT_IMPLEMENTED { assert(! "implemented"); } // TEMPORARY!!!
-#define NOT_TESTED { assert(! "tested"); } // TEMPORARY!!!
-
-
 namespace nosj {
 
 
@@ -35,7 +30,7 @@ inline constexpr bool operator!=(const Null&, const Null&) { return false; }
 
 namespace _details {
 	class Impl;
-} // namespace _details
+}
 
 
 class Number {
@@ -155,12 +150,12 @@ public:
 	Array&   asArray();
 	Object&  asObject();
 
-	const Null&    asNull()    const NOT_IMPLEMENTED;
+	const Null&    asNull()    const;
 	const Boolean& asBoolean() const;
 	const Number&  asNumber()  const;
-	const String&  asString()  const NOT_IMPLEMENTED;
-	const Array&   asArray()   const NOT_IMPLEMENTED;
-	const Object&  asObject()  const NOT_IMPLEMENTED;
+	const String&  asString()  const;
+	const Array&   asArray()   const;
+	const Object&  asObject()  const;
 
 private:
 	_details::Impl* impl;

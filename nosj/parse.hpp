@@ -32,6 +32,8 @@ public:
 	ExpectedTrailCodePoint(unsigned int position) : position(position) {}
 };
 
+class InvalidCodePoint : ParseException {};
+
 
 std::istream& operator>>(std::istream&, Value&);
 

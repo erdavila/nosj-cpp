@@ -287,7 +287,7 @@ struct Reader {
 				leadingIndicator = 0xF0; // 11110xxx
 				continuationBytes = 3;
 			} else {
-				NOT_IMPLEMENTED
+				throw InvalidCodePoint();
 			}
 
 			enum { continuationIndicator = 0x80 }; // 10xxxxxx

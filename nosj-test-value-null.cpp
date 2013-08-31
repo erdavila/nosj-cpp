@@ -22,6 +22,14 @@ namespace /*unnamed*/ {
 		assert_throws(v.asString(),  nosj::InvalidConversion);
 		assert_throws(v.asArray(),   nosj::InvalidConversion);
 		assert_throws(v.asObject(),  nosj::InvalidConversion);
+
+		const Tested& constV = v;
+		constV.asNull();
+		assert_throws(constV.asBoolean(), nosj::InvalidConversion);
+		assert_throws(constV.asNumber(),  nosj::InvalidConversion);
+		assert_throws(constV.asString(),  nosj::InvalidConversion);
+		assert_throws(constV.asArray(),   nosj::InvalidConversion);
+		assert_throws(constV.asObject(),  nosj::InvalidConversion);
 	}
 
 	void test_value_null() {
